@@ -24,7 +24,30 @@ def shopSmart(orderList, fruitShops):
         fruitShops: List of FruitShops
     """
     "*** YOUR CODE HERE ***"
-    return None
+    #Check if orderList and fruitShops is viable, return none if not
+    if len(orderList) ==0 or len(fruitShops)==0 :
+        return None
+    
+    #Check prices of all stores, set to none for initialized minShop or ignore for other shops if shop
+    #does not carry item
+    minShop = fruitShops[0]
+    minShopTotal = shop.FruitShop.getPriceOfOrder(minShop,orderList)
+    if not(checkInventory(orderList,minShop)):
+            minShop = None
+    for s in fruitShops:
+        shopTotal = shop.FruitShop.getPriceOfOrder(s,orderList)
+        if shopTotal < minShopTotal and checkInventory(orderList,s):
+            minShop = s
+    return minShop
+
+def checkInventory(orderList, fruitShop):
+    if len(orderList) ==0 or fruitShop==None :
+        return False
+    for o in orderList:
+        if shop.FruitShop.getCostPerPound(fruitShop,o[0]) == None:
+            print(o([0]))
+            return False
+    return True
 
 
 if __name__ == '__main__':
