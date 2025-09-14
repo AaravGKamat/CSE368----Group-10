@@ -28,6 +28,13 @@ def buyLotsOfFruit(orderList):
     Returns cost of order
     """
     totalCost = 0.0
+
+    for item in orderList:
+        if fruitPrices.keys().__contains__(item[0]):
+            totalCost += item[1] * fruitPrices.get(item[0])
+        else:
+            print(item[0], "does not appear in fruitPrices")
+            return None
     
     return totalCost
 
@@ -37,3 +44,9 @@ if __name__ == '__main__':
     "This code runs when you invoke the script from the command line"
     orderList = [('apples', 2.0), ('pears', 3.0), ('limes', 4.0)]
     print('Cost of', orderList, 'is', buyLotsOfFruit(orderList))
+
+    # Additional tests created by Matt
+    # orderList = [('apples', 2.5), ('pears', 3.5), ('limes', 4.5)] # expected: $14.50
+    # print('Cost of', orderList, 'is', buyLotsOfFruit(orderList))
+    # orderList = [('apples', 2.0), ('pears', 3.0), ('limes', 4.0), ("potatoes", 3.5)] # expected: error (potatoes not found)
+    # buyLotsOfFruit(orderList)
