@@ -90,11 +90,10 @@ total_test_reward = 0
 print("\n--- TESTING TRAINED AGENT ---")
 for step in range(max_steps):
     # TODO: Always pick the best action
-    # action = ???
-
+    action = np.argmax(Q_scores[state])
     next_state, reward, done, truncated, info = env.step(action)
     total_test_reward += reward
-    env.render()
+    print(env.render())
 
     if done or truncated:
         break
