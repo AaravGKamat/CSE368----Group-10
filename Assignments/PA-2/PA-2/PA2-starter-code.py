@@ -55,7 +55,9 @@ for episode in range(episodes):
 
         next_state, reward, terminated, truncated, info = env.step(action)
         done = terminated or truncated
-        print(env.render())
+
+        # CHECK
+        # print(env.render())
 
         # Update Q-table
         best_next_action = np.argmax(Q_scores[next_state])
@@ -91,13 +93,19 @@ print("\n--- TESTING TRAINED AGENT ---")
 for step in range(max_steps):
     # TODO: Always pick the best action
     action = np.argmax(Q_scores[state])
-    next_state, reward, done, truncated, info = env.step(action)
-    total_test_reward += reward
+    next_state, reward, terminated, truncated, info = env.step(action)
+    done = terminated or truncated
+
+    total_test_reward += float(reward)
+
     print(env.render())
 
-    if done or truncated:
+    if done:
         break
     state = next_state
 
 print("Total reward after training:", total_test_reward)
 env.close()
+
+
+# check if env.render should be printed for only testing, or training as well
