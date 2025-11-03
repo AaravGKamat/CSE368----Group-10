@@ -107,5 +107,120 @@ for step in range(max_steps):
 print("Total reward after training:", total_test_reward)
 env.close()
 
+# # Test Case 1 (our base case):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.9995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: 7, -100, 7, 9, -100, 11, 8, 12, 6, 7
+# Maximum reward: 12
+# Average reward (excluding failed training results): 8.375
+# Average reward (including failed training results): -13.3
+# Number of failed training runs (-100 total reward): 2
 
-# check if env.render should be printed for only testing, or training as well
+# # Test Case 2 (higher maximum steps):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.9995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 200
+# Number of runs: 10
+# # Results:
+# Training Results: 7, 7, 8, 8, -200, 9, 7, 9, 6, 10
+# Maximum reward: 10
+# Average reward (excluding failed training results): 7.888...
+# Average reward (including failed training results): -12.9
+# Number of failed training runs (negative total reward): 1
+
+# # Test Case 3 (half learning rate)
+# alpha = 0.05      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.9995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: -100, -100, -100, 12, -100, 11, 15, -100, -100, -100
+# Maximum reward: 15
+# Average reward (excluding failed training results): 12.666...
+# Average reward (including failed training results): -66.2
+# Number of failed training runs (-100 total reward): 7
+
+# # Test Case 4 (higher discount):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.95      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.9995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: 11, -100, 9, -100, 9, 10, 12, 9, 6, 10
+# Maximum reward: 12
+# Average reward (excluding failed training results): 9.5
+# Average reward (including failed training results): -12.4
+# Number of failed training runs (-100 total reward): 2
+
+# # Test Case 5 (less exploration):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 0.8    # Exploration rate
+# epsilon_decay = 0.9995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: 10, -100, 7, 10, 5, -100, 10, 7, 9, 10
+# Maximum reward: 10
+# Average reward (excluding failed training results): 8.5
+# Average reward (including failed training results): -13.2
+# Number of failed training runs (-100 total reward): 2
+
+# # Test Case 6 (lower decay):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: -100, 9, 10, 11, 8, -100, -100, -100, -100, 9
+# Maximum reward: 11
+# Average reward (excluding failed training results): 9.4
+# Average reward (including failed training results): -45.3
+# Number of failed training runs (-100 total reward): 5
+
+# # Test Case 7 (synthesis, utilizes the successful tests while disregarding the unsuccessful tests):
+# Parameters used:
+# alpha = 0.1      # Learning rate
+# gamma = 0.95      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.99995
+# epsilon_min = 0.1
+# episodes = 2000
+# max_steps = 200
+# Number of runs: 10
+# # Results:
+# Training Results: 12, 10, -200, 8, 7, 4, 10, 8, 9, 9
+# Maximum reward: 12
+# Average reward (excluding failed training results): 8.555...
+# Average reward (including failed training results): -12.3
+# Number of failed training runs (-100 total reward): 1
