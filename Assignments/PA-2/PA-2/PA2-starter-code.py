@@ -25,11 +25,11 @@ n_actions = env.action_space.n
 Q_scores = np.zeros((n_states, n_actions))
 
 # Q-learning parameters (you may adjust these)
-alpha = 0.1      # Learning rate
+alpha = 0.35      # Learning rate
 gamma = 0.9      # Discount factor
 epsilon = 1.0    # Exploration rate
-epsilon_decay = 0.9995
-epsilon_min = 0.1
+epsilon_decay = 0.99995
+epsilon_min = 0.05
 episodes = 2000
 max_steps = 100
 
