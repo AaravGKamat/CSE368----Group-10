@@ -224,3 +224,20 @@ env.close()
 # Average reward (excluding failed training results): 8.555...
 # Average reward (including failed training results): -12.3
 # Number of failed training runs (-100 total reward): 1
+
+# # Test Case 8 (another set of variables we found worked well)
+# Parameters used:
+# alpha = 0.35      # Learning rate
+# gamma = 0.9      # Discount factor
+# epsilon = 1.0    # Exploration rate
+# epsilon_decay = 0.99995
+# epsilon_min = 0.05
+# episodes = 2000
+# max_steps = 100
+# Number of runs: 10
+# # Results:
+# Training Results: 12, 14, 5, 6, 6, 8, 9, 9, 8, 7
+# Maximum reward: 14
+# Average reward (excluding failed training results): 8.4
+# Average reward (including failed training results): 8.4
+# Number of failed training runs (-100 total reward): 0
