@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Flashcard generation</h3>
+       <h4>Created Flashcards</h4>
+       
+       <h4>To create flashcards, upload an image below and press Create<h4>
+        <input type="file">Upload an image or pdf</input>
+        <a href="{{ url_for('home') }}">Return</a> 
+{% endblock %}

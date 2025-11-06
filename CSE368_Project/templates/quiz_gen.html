@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Quiz generation</h3>
+        <a href="{{ url_for('home') }}">Return</a> 
+       <h4>Created Quizzes</h4>
+       <!-- Get request here to load quizzes -->
+        <div class="quiz-list">
+            <!-- Quiz items will link to quiz page -->
+        <div class = "quiz-item" onclick ="location.href = 'http://localhost:5000/quiz/1';" >Quiz 1</div>
+
+        </div>
+       <h4>To create quizzes, upload a .png, .jpg, or .pdf below and press Create<h4>
+        <input type="text" placeholder="Enter the name of your quiz"></input>
+        <input type="file" accept="image/png,image/jpeg,application/pdf"></input><br>
+       <br><button>Create</button>   
+{% endblock %}

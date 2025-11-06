@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h3>Quiz {{ID}}</h3>
+         <button class = "quiz-submit" onclick ="location.href = 'http://localhost:5000/feedback/{{ID}}';" >Submit</button>
+
+{% endblock %}
