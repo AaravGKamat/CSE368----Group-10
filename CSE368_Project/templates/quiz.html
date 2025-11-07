@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
+{% block header %}
+Quiz {{ID}}
+{% endblock %}
 
 {% block content %}
-    <h3>Quiz {{ID}}</h3>
-         <button class = "quiz-submit" onclick ="location.href = 'http://localhost:5000/feedback/{{ID}}';" >Submit</button>
+    <a href="{{ url_for('quiz') }}">Return to quizzes and Flashcards</a> 
+         <button class = "quiz-submit" onclick ="location.href = '{{url_for('feed_get',id= ID )}}';" >Submit</button>
 
 {% endblock %}

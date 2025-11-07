@@ -15,15 +15,10 @@ def quiz_get(id):
     quiz_id = id
     return render_template('quiz.html',ID=quiz_id)
 
-@app.route('/flash/', methods=['GET'])
-def flash():
-    return render_template('flash_gen.html')
-
-@app.route('/flash/<id>', methods=['POST'])
-def flash_get():
-     if request.method=='POST':
-        flash_id = {id}
-        return render_template('flash.html',ID=flash_id)
+@app.route('/flash/<id>', methods=['GET','POST'])
+def flash_get(id):
+    flash_id = id
+    return render_template('flash.html',ID=flash_id)
      
 @app.route('/feedback/<id>', methods=['POST','GET'])
 def feed_get(id):
