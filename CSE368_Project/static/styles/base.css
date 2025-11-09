@@ -1,0 +1,32 @@
+.logo{
+  color: #007cff;
+  text-align: center;
+  font-size: 50px;
+  margin-top: 0px;
+  margin-bottom: 50px;
+  background-color: pink;
+  padding: 20px;
+}
+
+.base-container{
+    margin:0;
+}
+
+.header{
+   font-size: 30;
+   margin-left: 1em;
+}
+
+.create-container{
+    display:flex;
+    margin:2em;
+}
+
+.list-container{
+      flex: 1 1 0px;
+      background-color: #e1dfdf;
+}
+
+.gen{
+      flex: 1 1 0px;
+}

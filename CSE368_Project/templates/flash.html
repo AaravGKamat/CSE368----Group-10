@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block header %}
+Flashcard {{ID}}
+{% endblock %}
+{% block content %}
+<a href="{{ url_for('quiz') }}">Return to quizzes and Flashcards</a> 
+{% endblock %}

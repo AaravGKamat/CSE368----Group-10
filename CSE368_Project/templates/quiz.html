@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block header %}
+Quiz {{ID}}
+{% endblock %}
+
+{% block content %}
+    <a href="{{ url_for('quiz') }}">Return to quizzes and Flashcards</a> 
+         <button class = "quiz-submit" onclick ="location.href = '{{url_for('feed_get',id= ID )}}';" >Submit</button>
+
+{% endblock %}
