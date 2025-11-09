@@ -1,14 +1,17 @@
 <html>
-    <head>
-<link rel="stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/base.css') }}">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/base.css') }}">
 </head>
-   <body class="base-container">
-      <div class="logo">BrainGain</div>
-      <div class="header">
-      {% block header %}{% endblock %}
-      </div>
-      <div class="content">
+
+<body class="base-container">
+    <div class="logo">BrAIniac368</div>
+    <div class="header">
+        {% block header %}{% endblock %}
+    </div>
+    <div class="content">
         {% block content %} {% endblock %}
     </div>
-   </body>
+</body>
+
 </html>
