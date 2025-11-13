@@ -4,27 +4,28 @@ Quiz and Flashcard generation
 {% endblock %}
 
 {% block content %}
-        <a href="{{ url_for('home') }}">Home</a> 
-      <div class="create-container">
+<a href="{{ url_for('home') }}">Home</a>
+<div class="create-container">
 
 
-       <!-- Get request here to load quizzes -->
-        <div class="gen">
-       <h4>To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<h4>
+  <!-- Get request here to load quizzes -->
+  <form action="/file_path" method="post" enctype="multipart/form-data">
+    <h4>To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<h4>
         <input type="text" placeholder="Enter the name of your quiz or flashcard"></input>
-        <input type="file" accept="image/png,image/jpeg,application/pdf"></input><br>
-       <input type ="checkbox">Quiz</input><input type="checkbox">Flashcards</input>
-        <br><button>Create</button> 
-       </div>
+        <input type="file" name="upload" accept="image/png,image/jpeg,application/pdf"></input><br>
+        <input type="checkbox" name="quizupload">Quiz</input><input type="checkbox"
+          name="flashcardupload">Flashcards</input>
+        <br><button>Create</button>
+  </form>
 
-       <div class="list-container">
-         <h4>Created Quizzes and Flashcards</h4>
-        <div class="item-list">
-            <!-- Quiz items will link to quiz page -->
-        <div class = "item" onclick ="location.href = '{{url_for('quiz_get',id=1)}}';" >Quiz 1</div>
-        <div class = "item" onclick ="location.href = '{{url_for('flash_get',id='sef')}}';" >Flashcard 1</div>
+  <div class="list-container">
+    <h4>Created Quizzes and Flashcards</h4>
+    <div class="item-list">
+      <!-- Quiz items will link to quiz page -->
+      <div class="item" onclick="location.href = '{{url_for('quiz_get',id=1)}}';">Quiz 1</div>
+      <div class="item" onclick="location.href = '{{url_for('flash_get',id='sef')}}';">Flashcard 1</div>
 
-        </div>
     </div>
+  </div>
 </div>
 {% endblock %}

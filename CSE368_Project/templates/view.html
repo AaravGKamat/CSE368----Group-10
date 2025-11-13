@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block header %}
+My Quizzes and Flashcards {{ID}}
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('home') }}">Home</a>
+<br>
+<a href="{{ url_for('get_quizzes') }}">My Quizzes</a>
+<br>
+<a href="{{ url_for('get_flashcards') }}">My Flashcards</a>
+
+{% endblock %}
