@@ -12,3 +12,6 @@ else:
     mongo_client = MongoClient("localhost")
 
 db = mongo_client["BrAIniac368"]
+
+quiz_collection = db["quizzes"]
+flashcard_collection = db["flashcards"]

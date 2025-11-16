@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="quizlist">
+    <h1 class="font-bold">My Quizzes</h1>
+    <div id="q-list"></div>
+</div>
+<br>
+
+
+<script src="{{ url_for('static', filename='fetchquizzes.js') }}" type="module"></script>
+{% endblock %}

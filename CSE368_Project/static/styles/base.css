@@ -1,15 +1,16 @@
 .logo {
-    color: #007cff;
+    color: #318ced;
     text-align: center;
     font-size: 50px;
     margin-top: 0px;
     margin-bottom: 50px;
-    background-color: pink;
+    background-color: rgb(121, 16, 34);
     padding: 20px;
 }
 
 .base-container {
     margin: 0;
+    background-color: #6c6c6c
 }
 
 .header {
