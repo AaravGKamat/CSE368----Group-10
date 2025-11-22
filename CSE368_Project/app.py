@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, request, render_template, jsonify, s
 import os
 import uuid
 import json
+import random
 from app_files.database import quiz_collection
 from app_files.database import flashcard_collection
 from bson import json_util
@@ -163,6 +164,7 @@ def find_flashcard(filename):
 <>Question: The ultimate goal of understanding data structures is not memorization, but to empower a developer to do what?
 **Answer: To select the right tool for the job, enabling them to write elegant, powerful, and efficient software."""
     raw_flash = raw_flash.split("<>Question:")
+    random.shuffle(raw_flash)
     pairs =[]
     count =0
     for pair in raw_flash:
@@ -173,10 +175,12 @@ def find_flashcard(filename):
             json_pair["question"] = temp[0]
             json_pair["answer"] = temp[1]
             json_pair["count"] = count
+            if count ==0:
+                json_pair["start"] = "show"
             count+=1
             pairs.append(json_pair)
     print(pairs)
-    return render_template("flash.html",flash_list=pairs)
+    return render_template("flash.html",flash_list=pairs,flash_length=len(pairs))
 
 
 
