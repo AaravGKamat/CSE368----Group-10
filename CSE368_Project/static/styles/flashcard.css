@@ -1,0 +1,53 @@
+#cardholder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top:2em;
+}
+
+.card {
+  width: 250px;
+  height: 150px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.cardinner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+} 
+
+ .card.flipped .cardinner {
+  transform: rotateY(180deg);
+}
+
+
+
+
+.cardfront,
+.cardback {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  /* padding: 20px; */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  background: #fefefe;
+ 
+}
+
+.cardback {
+  background: #ffefd5;
+  transform: rotateY(180deg);
+}
+
+.cardtext{
+  margin-top:10px;
+  margin-right:5px;
+  margin-left:5px;
+}

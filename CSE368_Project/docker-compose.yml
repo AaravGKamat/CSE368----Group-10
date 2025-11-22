@@ -1,12 +1,19 @@
 services:
   mongo:
-    image: mongo
-    ports:
-      - '127.0.0.1:27017:27017'
-  myapp:
-    build: .
+    image: mongo:6
+    restart: unless-stopped
+    # volumes: 
+    #   - mongodata:/data/db
+  server:
+    build: 
+      context: .
+      dockerfile: server.Dockerfile
     environment:
-      WAIT_HOSTS: mongo:27017
       DOCKER_DB: true
+    depends_on:
+      - mongo
     ports:
       - '5000:5000'
+
+# volumes:
+#   mongodata:

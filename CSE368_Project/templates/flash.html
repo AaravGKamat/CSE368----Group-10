@@ -1,7 +1,30 @@
 {% extends 'base.html' %}
 {% block header %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/flashcard.css') }}">
 Flashcard {{ID}}
 {% endblock %}
 {% block content %}
-<a href="{{ url_for('quiz') }}">Return to quizzes and Flashcards</a> 
+<a href="{{ url_for('view_created') }}">Return to quizzes and Flashcards</a> 
+<div id = "cardholder">
+ {% for card in flash_list %}
+            <div class="card" onclick="flip({{card.count}})" id = "card{{card.count}}">
+            <div class="cardinner">
+                <div class="cardfront"><div class="cardtext">{{ card.question }}</div></div>
+                <div class="cardback"><div class="cardtext">{{ card.answer }}</div></div>
+            </div>
+            </div>
+        {% endfor %}
+
+
+</div>
+
+<script type="text/javascript">
+function flip(count) {
+    card = document.getElementById("card"+count)
+    card.classList.toggle("flipped")
+}
+</script>
+
+
+   
 {% endblock %}

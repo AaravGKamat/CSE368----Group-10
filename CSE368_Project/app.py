@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
 import os
 import uuid
+import json
 from app_files.database import quiz_collection
 from app_files.database import flashcard_collection
 from bson import json_util
@@ -68,7 +69,7 @@ def upload_file():
         random_id = str(uuid.uuid4())
         file_name = f"quiz_{random_id}{content_type}"
         file_path = (os.path.join(
-            "CSE368_Project/app_files/quizzes/", file_name))
+            "/root/app_files/quizzes/", file_name))
 
         file_data.save(file_path)
 
@@ -81,7 +82,7 @@ def upload_file():
         random_id = str(uuid.uuid4())
         file_name = f"flashcard_{random_id}{content_type}"
         file_path = (os.path.join(
-            "CSE368_Project/app_files/flashcards/", file_name))
+            "/root/app_files/flashcards/", file_name))
 
         file_data.seek(0)
         file_data.save(file_path)
@@ -117,7 +118,7 @@ def fetch_quizzes():
 # serve specific quiz
 @app.route('/serve_quiz/<path:filename>', methods=['GET'])
 def find_quiz(filename):
-    path = "app_files/quizzes/"
+    path = "/root/app_files/quizzes/"
     return send_from_directory(path, filename)
 
 
@@ -140,8 +141,44 @@ def fetch_flashcards():
 # serve specific flashcard
 @app.route('/serve_flashcard/<path:filename>', methods=['GET'])
 def find_flashcard(filename):
-    path = "app_files/flashcards/"
-    return send_from_directory(path, filename)
+    #Pretend this is returned from dbquery
+    raw_flash = """<>Question: What are the two broad categories into which all data structures are classified?
+**Answer: Primitive and non-primitive.
+<>Question: What is the key operational difference between a Stack and a Queue?
+**Answer: A Stack is LIFO (Last-In, First-Out), while a Queue is FIFO (First-In, First-Out).
+<>Question: What primary advantage does a Linked List offer over an Array, and what is the main cost of this advantage?
+**Answer: A Linked List provides dynamic memory allocation, at the cost of slower access to elements.
+<>Question: Beyond just storing data, what critical role do data structures play in relation to the data itself?
+**Answer: They define the relationships between data pieces, which enables specific operations to be performed with optimal speed.
+<>Question: If you were modeling a city's subway system, where stations are connected by tracks in a complex web, which non-linear data structure would be indispensable and why?
+**Answer: A Graph, because it is composed of nodes (stations) and edges (tracks) and is designed to model such real-world networks.
+<>Question: The core skill in selecting a data structure involves understanding the trade-off between what two fundamental resources?
+**Answer: Time (speed of operations) and space (memory usage).
+<>Question: Why are primitive data structures like integers and booleans considered less powerful for organization compared to non-primitive structures?
+**Answer: They are basic building blocks, while non-primitive structures (like linear and non-linear types) provide the true power for organizing and managing complex data relationships.
+<>Question: What is the defining characteristic of all Linear data structures?
+**Answer: They arrange their elements in a sequential order.
+<>Question: A Binary Search Tree is highlighted for enabling rapid operations on data. What is the fundamental property of a BST that makes these efficient operations possible?
+**Answer: Its non-linear, hierarchical structure which allows for algorithms (like searching) to eliminate half of the remaining tree with each step.
+<>Question: The ultimate goal of understanding data structures is not memorization, but to empower a developer to do what?
+**Answer: To select the right tool for the job, enabling them to write elegant, powerful, and efficient software."""
+    raw_flash = raw_flash.split("<>Question:")
+    pairs =[]
+    count =0
+    for pair in raw_flash:
+        if pair!="":
+            json_pair = {}
+            temp = pair.replace("\n","")
+            temp = temp.split("**Answer:")
+            json_pair["question"] = temp[0]
+            json_pair["answer"] = temp[1]
+            json_pair["count"] = count
+            count+=1
+            pairs.append(json_pair)
+    print(pairs)
+    return render_template("flash.html",flash_list=pairs)
+
+
 
 
 if __name__ == '__main__':
