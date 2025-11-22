@@ -1,3 +1,5 @@
 pymongo
 Flask
 Flask-SQLAlchemy
+google-genai
+dotenv

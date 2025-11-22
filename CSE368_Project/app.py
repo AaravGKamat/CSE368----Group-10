@@ -1,11 +1,15 @@
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import uuid
 import json
 import random
 from app_files.database import quiz_collection
 from app_files.database import flashcard_collection
 from bson import json_util
+from google import genai
 # command to run database + server at the same time
 # docker compose up --build --force-recreate
 
@@ -58,39 +62,74 @@ def upload_file():
     # get the quiz and flashcards checkmarks and actual file content
     quiz_upload = request.form.get("quizupload", None)
     flashcard_upload = request.form.get("flashcardupload", None)
-    file_data = request.files["upload"]
+    # file_data = request.files["upload"]
+    
+    notes_text = request.form["notestext"]
+    name = request.form["mat_name"]
 
+    print(name)
+    print(notes_text)
+
+    client = genai.Client(vertexai=False,api_key=os.environ["GEMINI_API_KEY"])
+    prompt =""
+    flash_index = 0
+    separator = " .Please separate the quiz from the flashcards with this: $$Separator"
+    if (quiz_upload == "on"):
+        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+    if (flashcard_upload == "on"):
+        prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
+    if (quiz_upload == "on" and flashcard_upload == "on"):
+        prompt+=separator
+        flash_index =1
+    response = client.models.generate_content(
+    model="gemini-2.5-flash", contents= notes_text+prompt
+    )
+    print(prompt)
+    print(response.text)
+    raw_response = response.text.replace("\n","")
+    raw_response = raw_response.split("$$Separator")
+    print(raw_response)
+
+    if (quiz_upload == "on"):
+        quiz_collection.insert_one(
+        {"quiz_name": name, "quiz_questions":raw_response[0]})
+    if (flashcard_upload == "on"):
+        flashcard_collection.insert_one(
+                    {"flashcard_name": name, "cards": raw_response[flash_index]})
     # get the file extension
-    content_type = mime_to_extension[str(file_data.content_type)]
+    # content_type = mime_to_extension[str(file_data.content_type)]
 
     # if the quiz checkmark is enabled, upload to the quizzes folder
     # if the flashcards checkmark is enabled, upload to the flashcards folder
-    if (quiz_upload == "on"):
-        # random id for the file
-        random_id = str(uuid.uuid4())
-        file_name = f"quiz_{random_id}{content_type}"
-        file_path = (os.path.join(
-            "/root/app_files/quizzes/", file_name))
 
-        file_data.save(file_path)
 
-        # upload filename to the database for quizzes
-        quiz_collection.insert_one(
-            {"quiz_name": file_name, "file_path": file_path})
+    # if file_data !=None:
+    #     if (quiz_upload == "on"):
+    #         # random id for the file
+    #         random_id = str(uuid.uuid4())
+    #         file_name = f"quiz_{random_id}{content_type}"
+    #         file_path = (os.path.join(
+    #             "/root/app_files/quizzes/", file_name))
 
-    if (flashcard_upload == "on"):
-        # random id for the file
-        random_id = str(uuid.uuid4())
-        file_name = f"flashcard_{random_id}{content_type}"
-        file_path = (os.path.join(
-            "/root/app_files/flashcards/", file_name))
+    #         file_data.save(file_path)
 
-        file_data.seek(0)
-        file_data.save(file_path)
+    #         # upload filename to the database for quizzes
+    #         quiz_collection.insert_one(
+    #             {"quiz_name": file_name, "file_path": file_path})
 
-        # upload filename to the database for flashcards
-        flashcard_collection.insert_one(
-            {"flashcard_name": file_name, "file_path": file_path})
+    #     if (flashcard_upload == "on"):
+    #         # random id for the file
+    #         random_id = str(uuid.uuid4())
+    #         file_name = f"flashcard_{random_id}{content_type}"
+    #         file_path = (os.path.join(
+    #             "/root/app_files/flashcards/", file_name))
+
+    #         file_data.seek(0)
+    #         file_data.save(file_path)
+
+    #         # upload filename to the database for flashcards
+    #         flashcard_collection.insert_one(
+    #             {"flashcard_name": file_name, "file_path": file_path})
     return redirect("/")
 
 
@@ -140,29 +179,11 @@ def fetch_flashcards():
 
 
 # serve specific flashcard
-@app.route('/serve_flashcard/<path:filename>', methods=['GET'])
-def find_flashcard(filename):
+@app.route('/serve_flashcard/<name>', methods=['GET'])
+def find_flashcard(name):
     #Pretend this is returned from dbquery
-    raw_flash = """<>Question: What are the two broad categories into which all data structures are classified?
-**Answer: Primitive and non-primitive.
-<>Question: What is the key operational difference between a Stack and a Queue?
-**Answer: A Stack is LIFO (Last-In, First-Out), while a Queue is FIFO (First-In, First-Out).
-<>Question: What primary advantage does a Linked List offer over an Array, and what is the main cost of this advantage?
-**Answer: A Linked List provides dynamic memory allocation, at the cost of slower access to elements.
-<>Question: Beyond just storing data, what critical role do data structures play in relation to the data itself?
-**Answer: They define the relationships between data pieces, which enables specific operations to be performed with optimal speed.
-<>Question: If you were modeling a city's subway system, where stations are connected by tracks in a complex web, which non-linear data structure would be indispensable and why?
-**Answer: A Graph, because it is composed of nodes (stations) and edges (tracks) and is designed to model such real-world networks.
-<>Question: The core skill in selecting a data structure involves understanding the trade-off between what two fundamental resources?
-**Answer: Time (speed of operations) and space (memory usage).
-<>Question: Why are primitive data structures like integers and booleans considered less powerful for organization compared to non-primitive structures?
-**Answer: They are basic building blocks, while non-primitive structures (like linear and non-linear types) provide the true power for organizing and managing complex data relationships.
-<>Question: What is the defining characteristic of all Linear data structures?
-**Answer: They arrange their elements in a sequential order.
-<>Question: A Binary Search Tree is highlighted for enabling rapid operations on data. What is the fundamental property of a BST that makes these efficient operations possible?
-**Answer: Its non-linear, hierarchical structure which allows for algorithms (like searching) to eliminate half of the remaining tree with each step.
-<>Question: The ultimate goal of understanding data structures is not memorization, but to empower a developer to do what?
-**Answer: To select the right tool for the job, enabling them to write elegant, powerful, and efficient software."""
+    flash_query = flashcard_collection.find_one({"flashcard_name":name})
+    raw_flash=flash_query["cards"]
     raw_flash = raw_flash.split("<>Question:")
     random.shuffle(raw_flash)
     pairs =[]
@@ -172,13 +193,15 @@ def find_flashcard(filename):
             json_pair = {}
             temp = pair.replace("\n","")
             temp = temp.split("**Answer:")
-            json_pair["question"] = temp[0]
-            json_pair["answer"] = temp[1]
-            json_pair["count"] = count
-            if count ==0:
-                json_pair["start"] = "show"
-            count+=1
-            pairs.append(json_pair)
+            print(temp)
+            if len(temp) ==2:
+                json_pair["question"] = temp[0]
+                json_pair["answer"] = temp[1]
+                json_pair["count"] = count
+                if count ==0:
+                    json_pair["start"] = "show"
+                count+=1
+                pairs.append(json_pair)
     print(pairs)
     return render_template("flash.html",flash_list=pairs,flash_length=len(pairs))
 
