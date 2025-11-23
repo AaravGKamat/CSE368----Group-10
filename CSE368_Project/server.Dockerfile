@@ -5,6 +5,7 @@ WORKDIR /root
 
 COPY ./requirements.txt ./requirements.txt
 COPY ./app.py ./app.py
+COPY ./.env ./.env
 COPY ./app_files ./app_files
 COPY ./templates ./templates
 COPY ./static ./static

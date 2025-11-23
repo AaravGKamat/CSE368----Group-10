@@ -1,7 +1,58 @@
 {% extends 'base.html' %}
 {% block header %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/flashcard.css') }}">
 Flashcard {{ID}}
 {% endblock %}
 {% block content %}
-<a href="{{ url_for('quiz') }}">Return to quizzes and Flashcards</a> 
+<a href="{{ url_for('view_created') }}">Return to quizzes and Flashcards</a> 
+<div id = "cardholder">
+    <button onclick = "prev()" class="cardbutton">←</button>
+ {% for card in flash_list %}
+            <div class="card {{card.start}}" onclick="flip({{card.count}})" id = "card{{card.count}}">
+            <div class="cardinner">
+                <div class="cardfront"><div class="cardtext">{{ card.question }}</div></div>
+                <div class="cardback"><div class="cardtext">{{ card.answer }}</div></div>
+            </div>
+            </div>
+        {% endfor %}
+<button onclick ="next({{flash_length}})" class="cardbutton">→</button>
+
+</div>
+<div id ="cardcounter"><div class="cardnum" id="curnum">1</div> <div class="cardnum">/{{flash_length}}</div></div>
+<script type="text/javascript">
+    var curshow = 0;
+function flip(count) {
+    card = document.getElementById("card"+count);
+    card.classList.toggle("flipped");
+}
+function prev(){
+    if (curshow!=0){
+        card = document.getElementById("card"+curshow);
+        card.classList.toggle("show");
+        card.classList.remove("flipped");
+        curshow -=1;
+        card = document.getElementById("card"+curshow);
+        card.classList.toggle("show");
+
+        counter = document.getElementById("curnum");
+        counter.innerHTML = curshow+1;
+    }
+}
+function next(length){
+    if (curshow != length-1){
+        card = document.getElementById("card"+curshow)
+        card.classList.toggle("show")
+        card.classList.remove("flipped");
+        curshow +=1
+        card = document.getElementById("card"+curshow)
+        card.classList.toggle("show")
+
+        counter = document.getElementById("curnum");
+        counter.innerHTML = curshow+1 ;
+    }
+}
+</script>
+
+
+   
 {% endblock %}
