@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<a href="{{ url_for('create_resource') }}">Create Quizzes and Flashcards</a>
-<br>
-<a href="{{ url_for('view_created') }}">View created Quizzes and Flashcards</a>
 
+<body>
+    <button>
+        <span><a href="{{ url_for('create_resource') }}">Create Quizzes and Flashcards</a></span>
+    </button>
+    <br>
+    <button>
+        <span><a href="{{ url_for('view_created') }}">View created Quizzes and Flashcards</a></span>
+    </button>
+</body>
 {% endblock %}
