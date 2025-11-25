@@ -88,8 +88,9 @@ def upload_file():
     
     
     # For a deployed custom model:
+    aiplatform.init(project="gen-lang-client-0354036019",location="us-central1")
     endpoint = aiplatform.Endpoint(endpoint_name="7264683331436937216")
-    response = endpoint.predict(instances=[{"input_data": prompt}])
+    response = endpoint.predict(instances=[{"prompt": prompt}])
     # For the Gemini API in Vertex AI:
     
     print(response.text)

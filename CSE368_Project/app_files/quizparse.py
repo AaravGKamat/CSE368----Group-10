@@ -6,7 +6,7 @@ from pymongo import MongoClient
 # Parses a quiz question input string into a dictionary.
 
 
-def parse_question(input_str):
+def parse_quiz(input_str):
     raw_quiz = input_str.split("<>Question:")
     pairs =[]
     count =0
@@ -25,4 +25,4 @@ def parse_question(input_str):
                 count+=1
                 pairs.append(json_pair)
     print(pairs)
-    return render_template("flash.html",flash_list=pairs,flash_length=len(pairs))
+    return 
