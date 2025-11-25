@@ -6,10 +6,15 @@ load_dotenv()
 import uuid
 import json
 import random
+from app_files.quizparse import parse_quiz
 from app_files.database import quiz_collection
 from app_files.database import flashcard_collection
 from bson import json_util
 from google import genai
+from google.cloud import aiplatform
+
+# Initialize the Vertex AI SDK
+
 # command to run database + server at the same time
 # docker compose up --build --force-recreate
 
@@ -70,7 +75,6 @@ def upload_file():
     print(name)
     print(notes_text)
 
-    client = genai.Client(vertexai=False,api_key=os.environ["GEMINI_API_KEY"])
     prompt =""
     flash_index = 0
     separator = " .Please separate the quiz from the flashcards with this: $$Separator"
@@ -81,9 +85,15 @@ def upload_file():
     if (quiz_upload == "on" and flashcard_upload == "on"):
         prompt+=separator
         flash_index =1
-    response = client.models.generate_content(
-    model="gemini-2.5-flash", contents= notes_text+prompt
-    )
+    
+    
+    # For a deployed custom model:
+    endpoint = aiplatform.Endpoint(endpoint_name="7264683331436937216")
+    response = endpoint.predict(instances=[{"input_data": prompt}])
+    # For the Gemini API in Vertex AI:
+    
+    print(response.text)
+
     print(prompt)
     print(response.text)
     raw_response = response.text.replace("\n","")
@@ -156,11 +166,52 @@ def fetch_quizzes():
 
 
 # serve specific quiz
-@app.route('/serve_quiz/<path:filename>', methods=['GET'])
-def find_quiz(filename):
-    path = "/root/app_files/quizzes/"
-    return send_from_directory(path, filename)
+@app.route('/serve_quiz/<name>', methods=['GET'])
+def find_quiz(name):
+    # quiz_query = quiz_collection.find_one({"quiz_name":name})
+    # raw_quiz=quiz_query["quiz_questions"]
+    raw_quiz =""" <>Question: What is the fundamental purpose of data structures?
+,^^Choices: &&Choice1:To make code more complex and difficult to understand &&Choice2:To organize, manage, and store data efficiently &&Choice3:To replace the need for algorithms in programming &&Choice4:To serve as passive repositories for information &&Choice5:To be the only component that determines a program's speed
+**Answer:Choice2:To organize, manage, and store data efficiently
 
+<>Question: The choice of an appropriate data structure can be the difference between a sluggish program and a high-performance one. This is primarily a trade-off between what two factors?
+,^^Choices: &&Choice1:Speed and cost &&Choice2:Time (speed of operations) and space (memory usage) &&Choice3:Complexity and readability &&Choice4:Primitive and non-primitive structures &&Choice5:Linear and non-linear relationships
+**Answer:Choice2:Time (speed of operations) and space (memory usage)
+
+<>Question: Which of the following is a key characteristic that distinguishes a Stack from a Queue?
+,^^Choices: &&Choice1:A Stack has a fixed size, while a Queue is dynamic. &&Choice2:A Stack uses indices for access, while a Queue uses nodes. &&Choice3:A Stack follows a First-In, First-Out order, while a Queue follows Last-In, First-Out. &&Choice4:A Stack follows a Last-In, First-Out order, while a Queue follows First-In, First-Out. &&Choice5:A Stack is a non-linear structure, while a Queue is linear.
+**Answer:Choice4:A Stack follows a Last-In, First-Out order, while a Queue follows First-In, First-Out.
+
+<>Question: A Linked List has an advantage over an Array in what area?
+,^^Choices: &&Choice1:Speed of access to individual elements &&Choice2:Memory usage efficiency &&Choice3:Fixed size allocation &&Choice4:Dynamic memory allocation &&Choice5:Ease of programming
+**Answer:Choice4:Dynamic memory allocation
+
+<>Question: Which data structure would be most appropriate for a task that requires managing data in the exact order it was received, such as handling print jobs?
+,^^Choices: &&Choice1:Stack &&Choice2:Array &&Choice3:Graph &&Choice4:Tree &&Choice5:Queue
+**Answer:Choice5:Queue
+
+<>Question: Integers and booleans are categorized as what type of data structure?
+,^^Choices: &&Choice1:Non-primitive structures &&Choice2:Linear structures &&Choice3:Complex structures &&Choice4:Primitive structures &&Choice5:Non-linear structures
+**Answer:Choice4:Primitive structures
+
+<>Question: What is the primary reason Graphs are considered indispensable?
+,^^Choices: &&Choice1:They enable rapid searching, insertion, and deletion. &&Choice2:They provide dynamic memory allocation. &&Choice3:They are the most efficient data structure for all tasks. &&Choice4:They are crucial for modeling real-world networks like social connections. &&Choice5:They are the fundamental building blocks provided by a programming language.
+**Answer:Choice4:They are crucial for modeling real-world networks like social connections.
+
+<>Question: A Binary Search Tree is particularly effective for which set of operations?
+,^^Choices: &&Choice1:Modeling sequential order &&Choice2:Rapid searching, insertion, and deletion &&Choice3:Managing data in a First-In, First-Out order &&Choice4:Providing instant lookups like a hash table &&Choice5:Serving as a basic building block for other structures
+**Answer:Choice2:Rapid searching, insertion, and deletion
+
+<>Question: What is the broader category that includes both Trees and Graphs?
+,^^Choices: &&Choice1:Primitive Data Structures &&Choice2:Linear Data Structures &&Choice3:Non-primitive Data Structures &&Choice4:Sequential Data Structures &&Choice5:Static Data Structures
+**Answer:Choice3:Non-primitive Data Structures
+
+<>Question: True understanding of data structures is not about memorization, but about what deeper skill?
+,^^Choices: &&Choice1:Knowing the most obscure data structures available &&Choice2:Comprehending the trade-offs to select the right tool for the job &&Choice3:Being able to program in multiple languages &&Choice4:Always choosing the data structure with the fastest operational speed &&Choice5:Avoiding the use of primitive structures whenever possible
+**Answer:Choice2:Comprehending the trade-offs to select the right tool for the job"""
+    parsed_quiz = parse_quiz(raw_quiz)
+    print(parsed_quiz)
+    return render_template("quiz.html",quiz_list=parsed_quiz,quiz_length=len(parsed_quiz))
 
 # view all uploaded flashcards
 @app.route('/uploaded_flashcards/', methods=['GET'])
@@ -181,7 +232,6 @@ def fetch_flashcards():
 # serve specific flashcard
 @app.route('/serve_flashcard/<name>', methods=['GET'])
 def find_flashcard(name):
-    #Pretend this is returned from dbquery
     flash_query = flashcard_collection.find_one({"flashcard_name":name})
     raw_flash=flash_query["cards"]
     raw_flash = raw_flash.split("<>Question:")
