@@ -1,13 +1,29 @@
 {% extends 'base.html' %}
 {% block header %}
+
 My Quizzes and Flashcards {{ID}}
+
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('home') }}">Home</a>
 <br>
-<a href="{{ url_for('get_quizzes') }}">My Quizzes</a>
+<button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+    <span>
+        Home
+    </span>
+</button>
 <br>
-<a href="{{ url_for('get_flashcards') }}">My Flashcards</a>
+<button class="button1" onclick="window.location.href='{{ url_for('get_quizzes') }}'">
+    <span>
+        My Quizzes
+    </span>
+</button>
+<br>
+<button class="button1" onclick="window.location.href='{{ url_for('get_flashcards') }}'">
+    <span>
+        My Flashcards
+    </span>
+</button>
+
 
 {% endblock %}

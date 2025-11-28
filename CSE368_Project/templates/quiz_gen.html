@@ -4,20 +4,27 @@ Quiz and Flashcard generation
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('home') }}">Home</a>
+<br>
+<button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+  <span>
+    Home
+  </span>
+</button>
+<br>
+
 <div class="create-container">
 
 
   <!-- Get request here to load quizzes -->
   <form action="/file_path" method="post" enctype="multipart/form-data">
-    <h4>To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<h4>
-        <input type="text" name = "mat_name" placeholder="Enter the name of your quiz or flashcard"></input><br>
-         <input class="notesbox" name="notestext" type="text" placeholder="Enter your notes here"></input>
+    <div>To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<div>
+        <input type="text" name="mat_name" placeholder="Enter the name of your quiz or flashcard"></input><br>
+        <input class="notesbox" name="notestext" type="text" placeholder="Enter your notes here"></input>
         <input type="file" name="upload" accept="image/png,image/jpeg,application/pdf"></input><br>
         <input type="checkbox" name="quizupload">Quiz</input><input type="checkbox"
           name="flashcardupload">Flashcards</input>
-         
-        <br><button>Create</button>
+
+        <br><button class="button3">Create</button>
   </form>
 
 </div>
