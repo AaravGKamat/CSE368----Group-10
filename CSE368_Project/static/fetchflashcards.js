@@ -17,7 +17,8 @@ async function fetch_flashcards() {
         for (let i = 0; i < len; i++) {
             let element = fc_length[i];
 
-            result += '<button class="button4"><span><a href="/serve_flashcard/' + element["flashcard_name"] + '">' + element["flashcard_name"] + '</a></span></button><br><br>';
+            result += '<button class="button4" onclick="window.location.href=\'/serve_flashcard/' + element["flashcard_name"] + '\'">' + '<span>' + element["flashcard_name"] + '</span></button><br><br>';
+
         }
         final_list.innerHTML = result;
         return;

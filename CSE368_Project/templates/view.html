@@ -7,16 +7,23 @@ My Quizzes and Flashcards {{ID}}
 
 {% block content %}
 <br>
-<button class="button1">
-    <span><a href="{{ url_for('home') }}">Home</a></button></span>
+<button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+    <span>
+        Home
+    </span>
 </button>
 <br>
-<button class="button1">
-    <span><a href="{{ url_for('get_quizzes') }}">My Quizzes</a></span>
+<button class="button1" onclick="window.location.href='{{ url_for('get_quizzes') }}'">
+    <span>
+        My Quizzes
+    </span>
 </button>
 <br>
-<button class="button1">
-    <span><a href="{{ url_for('get_flashcards') }}">My Flashcards</a></span>
+<button class="button1" onclick="window.location.href='{{ url_for('get_flashcards') }}'">
+    <span>
+        My Flashcards
+    </span>
 </button>
+
 
 {% endblock %}

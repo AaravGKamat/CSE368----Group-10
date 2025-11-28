@@ -3,12 +3,12 @@
 {% block content %}
 
 <body>
-    <button class="button1">
-        <span><a href="{{ url_for('create_resource') }}">Create Quizzes and Flashcards</a></span>
+    <button class="button1" onclick="window.location.href='{{ url_for('create_resource') }}'">
+        <span>Create Quizzes and Flashcards</span>
     </button>
     <br>
-    <button class="button1">
-        <span><a href="{{ url_for('view_created') }}">View created Quizzes and Flashcards</a></span>
+    <button class="button1" onclick="window.location.href='{{ url_for('view_created') }}'">
+        <span>View created Quizzes and Flashcards</span>
     </button>
 </body>
 {% endblock %}
