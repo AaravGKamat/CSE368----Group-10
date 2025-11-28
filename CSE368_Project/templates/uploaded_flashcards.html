@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
+{% block header %}
+
+My Flashcards
+
+{% endblock %}
+
 
 {% block content %}
-<div class="flashcardlist">
-    <h1 class="font-bold">My Flashcards</h1>
-    <div id="fc-list"></div>
-</div>
 <br>
+<button class="button1">
+    <span>
+        <a href="{{ url_for('home') }}">Home</a>
+    </span>
+</button>
 
+<br>
+<div id="fc-list"></div>
 
 <script src="{{ url_for('static', filename='fetchflashcards.js') }}" type="module"></script>
 {% endblock %}

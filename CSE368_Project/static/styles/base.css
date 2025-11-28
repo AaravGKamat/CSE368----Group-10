@@ -19,8 +19,8 @@
 }
 
 .header {
-    font-size: 30;
-    margin-left: 1em;
+    font-size: 30px;
+    color: #318ced
 }
 
 .create-container {
@@ -53,7 +53,9 @@ a {
 
 }
 
-button {
+/* From Uiverse.io by cssbuttons-io */
+.button1 {
+
     align-items: center;
     background-image: linear-gradient(144deg, #af40ff, #5b42f3 50%, #00ddeb);
     border: 0;
@@ -62,7 +64,7 @@ button {
     box-sizing: border-box;
     color: #ffffff;
     display: flex;
-    font-size: 18px;
+    font-size: 20px;
     justify-content: center;
     line-height: 1em;
     max-width: 100%;
@@ -77,14 +79,15 @@ button {
     transition: all 0.3s;
     pointer-events: all;
 
+
 }
 
-button:active,
-button:hover {
+.button1:active,
+.button1:hover {
     outline: 0;
 }
 
-button span {
+.button1 span {
     background-color: rgb(5, 6, 45);
     padding: 16px 24px;
     border-radius: 6px;
@@ -94,10 +97,159 @@ button span {
 
 }
 
-button:hover span {
+.button1:hover span {
     background: none;
 }
 
-button:active {
+.button1:active {
     transform: scale(0.9);
+}
+
+/* From Uiverse.io by cssbuttons-io */
+.button2 {
+    appearance: button;
+    background-color: #1899D6;
+    border: solid transparent;
+    border-radius: 16px;
+    border-width: 0 0 4px;
+    box-sizing: border-box;
+    color: #FFFFFF;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    line-height: 20px;
+    margin: 0;
+    outline: none;
+    overflow: visible;
+    padding: 13px 19px;
+    text-align: center;
+    text-transform: uppercase;
+    touch-action: manipulation;
+    transform: translateZ(0);
+    transition: filter .2s;
+    user-select: none;
+    -webkit-user-select: none;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.button2:after {
+    background-clip: padding-box;
+    background-color: #1CB0F6;
+    border: solid transparent;
+    border-radius: 16px;
+    border-width: 0 0 4px;
+    bottom: -4px;
+    content: "";
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: -1;
+}
+
+.button2:main,
+.button2:focus {
+    user-select: auto;
+}
+
+.button2:hover:not(:disabled) {
+    filter: brightness(1.1);
+}
+
+.button2:disabled {
+    cursor: auto;
+}
+
+.button2:active:after {
+    border-width: 0 0 0px;
+}
+
+.button2:active {
+    padding-bottom: 10px;
+}
+
+
+/* From Uiverse.io by lenfear23 */
+.button3 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    cursor: pointer;
+    width: 150px;
+    height: 50px;
+    background-image: linear-gradient(to top, #D8D9DB 0%, #fff 80%, #FDFDFD 100%);
+    border-radius: 30px;
+    border: 1px solid #8F9092;
+    transition: all 0.2s ease;
+    font-family: "Source Sans Pro", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #606060;
+    text-shadow: 0 1px #fff;
+}
+
+.button3:hover {
+    box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 3px 3px #CECFD1;
+}
+
+.button3:active {
+    box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 5px 3px #999, inset 0 0 30px #aaa;
+}
+
+.button3:focus {
+    box-shadow: 0 4px 3px 1px #FCFCFC, 0 6px 8px #D6D7D9, 0 -4px 4px #CECFD1, 0 -6px 4px #FEFEFE, inset 0 0 5px 3px #999, inset 0 0 30px #aaa;
+}
+
+
+/* From Uiverse.io by adamgiebl */
+/* Inspired by twitter.com/marina_uiux */
+
+.button4 {
+    font-size: 17px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgb(56, 56, 56) 0%, rgb(36, 36, 36) 66%, rgb(41, 41, 41) 100%);
+    color: rgb(218, 218, 218);
+    border: none;
+    padding: 2px;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.button4 span {
+    border-radius: 10px;
+    padding: 0.8em 1.3em;
+    padding-right: 1.2em;
+    text-shadow: 0px 0px 20px #4b4b4b;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+    transition: all 0.3s;
+    background-color: rgb(29, 29, 29);
+    background-image: radial-gradient(at 95% 89%, rgb(15, 15, 15) 0px, transparent 50%), radial-gradient(at 0% 100%, rgb(17, 17, 17) 0px, transparent 50%), radial-gradient(at 0% 0%, rgb(29, 29, 29) 0px, transparent 50%);
+}
+
+.button4:hover span {
+    background-color: rgb(26, 25, 25);
+}
+
+.button4-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-conic-gradient(rgb(48, 47, 47) 0.0000001%, rgb(51, 51, 51) 0.000104%) 60% 60%/600% 600%;
+    filter: opacity(10%) contrast(105%);
+    -webkit-filter: opacity(10%) contrast(105%);
+}
+
+.button4 svg {
+    width: 15px;
+    height: 15px;
 }
