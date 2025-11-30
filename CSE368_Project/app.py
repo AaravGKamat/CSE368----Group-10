@@ -6,6 +6,7 @@ import random
 import json
 import uuid
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
+from app_files.quiz_parse import parse_quiz
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -165,6 +166,25 @@ def find_quiz(filename):
     path = "/root/app_files/quizzes/"
     return send_from_directory(path, filename)
 
+# fully serves specific quiz with parsing and rendering
+@app.route('/serve_quiz/<name>', methods=['GET'])
+def serve_quiz(name):
+    # Retrieve the raw quiz string from the database
+    quiz_doc = quiz_collection.find_one({"quiz_name": name})
+
+    if not quiz_doc:
+        return "Quiz not found", 404
+
+    raw_quiz = quiz_doc["quiz_questions"]
+
+    # Parse using your existing code
+    parsed = parse_quiz(raw_quiz, delimiter="||")
+
+    # Render in template
+    return render_template("quiz_render.html",
+                           quiz_name=name,
+                           questions=parsed,
+                           q_count=len(parsed))
 
 # view all uploaded flashcards
 @app.route('/uploaded_flashcards/', methods=['GET'])
