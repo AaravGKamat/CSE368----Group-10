@@ -5,7 +5,9 @@ WORKDIR /root
 
 COPY ./requirements.txt ./requirements.txt
 COPY ./app.py ./app.py
-COPY ./.env ./.env
+## Copy committed example env so build doesn't fail when developers haven't created a local .env
+## Developers can still create a local `.env` and bind-mount it at runtime if needed.
+COPY ./.env.example ./.env
 COPY ./app_files ./app_files
 COPY ./templates ./templates
 COPY ./static ./static
