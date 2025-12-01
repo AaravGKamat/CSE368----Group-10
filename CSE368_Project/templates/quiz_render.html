@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ quiz_name }}</title>
+</head>
+<body>
+    <h1>{{ quiz_name }}</h1>
+
+    {% for q in questions %}
+        <div style="margin-bottom: 25px;">
+            <h3>{{ loop.index }}. {{ q.question }}</h3>
+
+            <ul>
+                {% for c in q.choices %}
+                    <li>{{ c }}</li>
+                {% endfor %}
+            </ul>
+
+            <!-- Show answer for now -->
+            <p><b>Correct Answer:</b> {{ q.answer }}</p>
+        </div>
+    {% endfor %}
+</body>
+</html>
