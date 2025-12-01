@@ -1,24 +1,122 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block content %}
+<!doctype html>
 <html>
 <head>
-    <title>{{ quiz_name }}</title>
+  <meta charset="utf-8">
+  <title>Quiz: {{ quiz_name }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .question { margin-bottom: 24px; }
+    .q-text h2, .q-text h1 { 
+        color: #071022;
+        text-shadow: 
+            0 0 2px rgba(255,255,255,1),
+            0 0 6px rgba(255,255,255,1),
+            0 0 12px rgba(255,255,255,1)
+     }
+    .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    button.choice { 
+        align-items: center;
+        background-image: linear-gradient(144deg, #af40ff, #5b42f3 50%, #00ddeb);
+        border: 0;
+        border-radius: 8px;
+        box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+        box-sizing: border-box;
+        color: #ffffff;
+        display: flex;
+        font-size: 20px;
+        justify-content: center;
+        line-height: 1em;
+        max-width: 100%;
+        min-width: 140px;
+        padding: 3px;
+        text-decoration: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s;
+        pointer-events: all;
+     }
+    button.choice.correct, button.choice.correct span { background: #d4edda; border-color: #28a745; color: #155724; }
+    button.choice.incorrect, button.choice.incorrect span { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+    button.choice:disabled, button.choice:disabled span { opacity: 0.75; cursor: default; }
+    button.choice.correct:disabled, button.choice.incorrect:disabled, button.choice.correct:disabled span, button.choice.incorrect:disabled span { opacity: 1; }
+    button.choice:active,
+    button.choice:hover {
+        outline: 0;
+    }
+
+    button.choice span {
+        background-color: rgb(5, 6, 45);
+        padding: 16px 24px;
+        border-radius: 6px;
+        width: 100%;
+        height: 100%;
+        transition: 300ms;
+
+    }
+
+    button.choice:hover span {
+        background: none;
+    }
+
+    button.choice:active {
+        transform: scale(0.9);
+    }
+  </style>
 </head>
 <body>
-    <h1>{{ quiz_name }}</h1>
+  <div class="q-text"><h1>Quiz: {{ quiz_name }}</h1></div>
 
+  <div id="quiz">
     {% for q in questions %}
-        <div style="margin-bottom: 25px;">
-            <h3>{{ loop.index }}. {{ q.question }}</h3>
-
-            <ul>
-                {% for c in q.choices %}
-                    <li>{{ c }}</li>
-                {% endfor %}
-            </ul>
-
-            <!-- Show answer for now -->
-            <p><b>Correct Answer:</b> {{ q.answer }}</p>
+      <div class="question" data-q-index="{{ loop.index0 }}">
+        <div class="q-text"><h2><strong>Q{{ loop.index }}.</strong> {{ q.question }}</h2></div>
+        <div class="choices">
+          {% for choice in q.choices %}
+            <button class="choice" type="button"
+                    data-choice="{{ choice }}"
+                    data-answer="{{ q.answer }}">
+                    <span>
+                        {{ choice }}
+                    </span>
+                </button>
+          {% endfor %}
         </div>
+      </div>
     {% endfor %}
+  </div>
+
+  <script>
+    document.querySelectorAll('.question').forEach(function(qElem) {
+      const buttons = Array.from(qElem.querySelectorAll('button.choice'));
+      buttons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          // already answered
+          if (buttons.some(b => b.disabled)) return;
+
+          const selected = btn.getAttribute('data-choice').trim();
+          const answer = btn.getAttribute('data-answer').trim();
+
+          if (selected === answer) {
+            btn.classList.add('correct');
+          } else {
+            btn.classList.add('incorrect');
+            // reveal correct button
+            const correctBtn = buttons.find(b => b.getAttribute('data-choice').trim() === answer);
+            if (correctBtn) correctBtn.classList.add('correct');
+          }
+
+          // disable all choices for this question
+          buttons.forEach(b => b.disabled = true);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
+{% endblock %}
