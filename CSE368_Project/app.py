@@ -178,7 +178,7 @@ def serve_quiz(name):
     raw_quiz = quiz_doc["quiz_questions"]
 
     # Parse using your existing code
-    parsed = parse_quiz(raw_quiz, delimiter="||")
+    parsed = parse_quiz(raw_quiz)
 
     # Render in template
     return render_template("quiz_render.html",
