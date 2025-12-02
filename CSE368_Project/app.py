@@ -1,18 +1,17 @@
+from google import genai
+from bson import json_util
+from app_files.database import flashcard_collection
+from app_files.database import quiz_collection
+import random
+import json
+import uuid
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import uuid
-import json
-import random
 from app_files.quizparse import parse_quiz
-from app_files.database import quiz_collection
-from app_files.database import flashcard_collection
-from bson import json_util
-from google import genai
 from google.cloud import aiplatform
-
 import requests
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
@@ -68,7 +67,7 @@ def upload_file():
     quiz_upload = request.form.get("quizupload", None)
     flashcard_upload = request.form.get("flashcardupload", None)
     # file_data = request.files["upload"]
-    
+
     notes_text = request.form["notestext"]
     name = request.form["mat_name"]
 
@@ -79,7 +78,7 @@ def upload_file():
     flash_index = 0
     separator = " .Please separate the quiz from the flashcards with this: $$Separator"
     if (quiz_upload == "on"):
-        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice2:put choice 2 here &&Choice3:put choice 3 here &&Choice4:put choice 4 here &&Choice5:put choice 5 here, **Answer:put answer here. "
     if (flashcard_upload == "on"):
         prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
     if (quiz_upload == "on" and flashcard_upload == "on"):
@@ -138,16 +137,15 @@ def upload_file():
     #Store response in db
     if (quiz_upload == "on"):
         quiz_collection.insert_one(
-        {"quiz_name": name, "quiz_questions":raw_response[0]})
+            {"quiz_name": name, "quiz_questions": raw_response[0]})
     if (flashcard_upload == "on"):
         flashcard_collection.insert_one(
-                    {"flashcard_name": name, "cards": raw_response[flash_index]})
+            {"flashcard_name": name, "cards": raw_response[flash_index]})
     # get the file extension
     # content_type = mime_to_extension[str(file_data.content_type)]
 
     # if the quiz checkmark is enabled, upload to the quizzes folder
     # if the flashcards checkmark is enabled, upload to the flashcards folder
-
 
     # if file_data !=None:
     #     if (quiz_upload == "on"):
@@ -275,23 +273,21 @@ def find_flashcard(name):
     pairs =[]
     count =0
     for pair in raw_flash:
-        if pair!="":
+        if pair != "":
             json_pair = {}
-            temp = pair.replace("\n","")
+            temp = pair.replace("\n", "")
             temp = temp.split("**Answer:")
             print(temp)
-            if len(temp) ==2:
+            if len(temp) == 2:
                 json_pair["question"] = temp[0]
                 json_pair["answer"] = temp[1]
                 json_pair["count"] = count
-                if count ==0:
+                if count == 0:
                     json_pair["start"] = "show"
-                count+=1
+                count += 1
                 pairs.append(json_pair)
     print(pairs)
-    return render_template("flash.html",flash_list=pairs,flash_length=len(pairs))
-
-
+    return render_template("flash.html", flash_list=pairs, flash_length=len(pairs))
 
 
 if __name__ == '__main__':
