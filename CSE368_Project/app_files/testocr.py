@@ -29,6 +29,7 @@ base64_image3 = encode_image(image_path3)
 image_path4 = "CSE368_Project/app_files/image4.jpg"
 base64_image4 = encode_image(image_path4)
 
+
 # ocr_response_1 = client.ocr.process(
 #     model="mistral-ocr-latest",
 #     document={
@@ -56,17 +57,38 @@ base64_image4 = encode_image(image_path4)
 #     include_image_base64=True
 # )
 
-ocr_response_4 = client.ocr.process(
+# ocr_response_4 = client.ocr.process(
+#     model="mistral-ocr-latest",
+#     document={
+#         "type": "image_url",
+#         "image_url": f"data:image/jpg;base64,{base64_image4}"
+#     },
+#     include_image_base64=True
+# )
+
+
+def encode_pdf(pdf_path):
+    with open(pdf_path, "rb") as pdf_file:
+        return base64.b64encode(pdf_file.read()).decode('utf-8')
+
+
+pdf_path = "CSE368_Project/app_files/png2pdf.pdf"
+base64_pdf = encode_pdf(pdf_path)
+
+ocr_response_5 = client.ocr.process(
     model="mistral-ocr-latest",
     document={
-        "type": "image_url",
-        "image_url": f"data:image/jpg;base64,{base64_image4}"
+        "type": "document_url",
+        "document_url": f"data:application/pdf;base64,{base64_pdf}"
     },
     include_image_base64=True
 )
 
 
+print(ocr_response_5)
+
+
 # print(ocr_response_1)
 # print(ocr_response_2)
 # print(ocr_response_3)
-print(ocr_response_4)
+# print(ocr_response_4)

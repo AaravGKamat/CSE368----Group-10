@@ -6,7 +6,9 @@ import random
 import json
 import uuid
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
+import base64
 import os
+from mistralai import Mistral
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -63,78 +65,98 @@ def upload_file():
     # get the quiz and flashcards checkmarks and actual file content
     quiz_upload = request.form.get("quizupload", None)
     flashcard_upload = request.form.get("flashcardupload", None)
-    # file_data = request.files["upload"]
+    # data of file
+    file_data = request.files["upload"]
 
     notes_text = request.form["notestext"]
     name = request.form["mat_name"]
 
-    print(name)
-    print(notes_text)
+    if (file_data.filename == ""):
 
-    client = genai.Client(vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
-    prompt = ""
-    flash_index = 0
-    separator = " .Please separate the quiz from the flashcards with this: $$Separator"
-    if (quiz_upload == "on"):
-        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
-    if (flashcard_upload == "on"):
-        prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
-    if (quiz_upload == "on" and flashcard_upload == "on"):
-        prompt += separator
-        flash_index = 1
+        client = genai.Client(
+            vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
+        prompt = ""
+        flash_index = 0
+        separator = " .Please separate the quiz from the flashcards with this: $$Separator"
+        if (quiz_upload == "on"):
+            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+        if (flashcard_upload == "on"):
+            prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
+        if (quiz_upload == "on" and flashcard_upload == "on"):
+            prompt += separator
+            flash_index = 1
 
-    response = ""
-    response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=notes_text+prompt
-    )
-    print(prompt)
-    print(response.text)
-    raw_response = ""
-    if (response.text != None):
-        raw_response = response.text.replace("\n", "")
-    raw_response = raw_response.split("$$Separator")
-    print(raw_response)
+        response = ""
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=notes_text+prompt
+        )
+        print(prompt)
+        print(response.text)
+        raw_response = ""
+        if (response.text != None):
+            raw_response = response.text.replace("\n", "")
+        raw_response = raw_response.split("$$Separator")
+        print(raw_response)
 
-    if (quiz_upload == "on"):
-        quiz_collection.insert_one(
-            {"quiz_name": name, "quiz_questions": raw_response[0]})
-    if (flashcard_upload == "on"):
-        flashcard_collection.insert_one(
-            {"flashcard_name": name, "cards": raw_response[flash_index]})
-    # get the file extension
-    # content_type = mime_to_extension[str(file_data.content_type)]
+        if (quiz_upload == "on"):
+            quiz_collection.insert_one(
+                {"quiz_name": name, "quiz_questions": raw_response[0]})
+        if (flashcard_upload == "on"):
+            flashcard_collection.insert_one(
+                {"flashcard_name": name, "cards": raw_response[flash_index]})
 
-    # if the quiz checkmark is enabled, upload to the quizzes folder
-    # if the flashcards checkmark is enabled, upload to the flashcards folder
+        # get the file extension
+        # content_type = mime_to_extension[str(file_data.content_type)]
 
-    # if file_data !=None:
-    #     if (quiz_upload == "on"):
-    #         # random id for the file
-    #         random_id = str(uuid.uuid4())
-    #         file_name = f"quiz_{random_id}{content_type}"
-    #         file_path = (os.path.join(
-    #             "/root/app_files/quizzes/", file_name))
+        # if the quiz checkmark is enabled, upload to the quizzes folder
+        # if the flashcards checkmark is enabled, upload to the flashcards folder
 
-    #         file_data.save(file_path)
+        # if file_data !=None:
+        #     if (quiz_upload == "on"):
+        #         # random id for the file
+        #         random_id = str(uuid.uuid4())
+        #         file_name = f"quiz_{random_id}{content_type}"
+        #         file_path = (os.path.join(
+        #             "/root/app_files/quizzes/", file_name))
 
-    #         # upload filename to the database for quizzes
-    #         quiz_collection.insert_one(
-    #             {"quiz_name": file_name, "file_path": file_path})
+        #         file_data.save(file_path)
 
-    #     if (flashcard_upload == "on"):
-    #         # random id for the file
-    #         random_id = str(uuid.uuid4())
-    #         file_name = f"flashcard_{random_id}{content_type}"
-    #         file_path = (os.path.join(
-    #             "/root/app_files/flashcards/", file_name))
+        #         # upload filename to the database for quizzes
+        #         quiz_collection.insert_one(
+        #             {"quiz_name": file_name, "file_path": file_path})
 
-    #         file_data.seek(0)
-    #         file_data.save(file_path)
+        #     if (flashcard_upload == "on"):
+        #         # random id for the file
+        #         random_id = str(uuid.uuid4())
+        #         file_name = f"flashcard_{random_id}{content_type}"
+        #         file_path = (os.path.join(
+        #             "/root/app_files/flashcards/", file_name))
 
-    #         # upload filename to the database for flashcards
-    #         flashcard_collection.insert_one(
-    #             {"flashcard_name": file_name, "file_path": file_path})
-    return redirect("/")
+        #         file_data.seek(0)
+        #         file_data.save(file_path)
+
+        #         # upload filename to the database for flashcards
+        #         flashcard_collection.insert_one(
+        #             {"flashcard_name": file_name, "file_path": file_path})
+        return redirect("/")
+    else:
+
+        # parse the pdf
+        api_key = os.environ["MISTRAL_API_KEY"]
+        client = Mistral(api_key=api_key)
+        encoded_data = base64.b64encode(file_data.read()).decode('utf-8')
+        ocr_response = client.ocr.process(
+            model="mistral-ocr-latest",
+            document={
+                "type": "document_url",
+                "document_url": f"data:application/pdf;base64,{encoded_data}"
+            },
+            include_image_base64=True
+        )
+
+        print(ocr_response)
+
+        return redirect("/")
 
 
 # view page
