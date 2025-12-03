@@ -11,7 +11,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from app_files.quizparse import parse_quiz
 from google.cloud import aiplatform
 import requests
 from google.oauth2 import service_account

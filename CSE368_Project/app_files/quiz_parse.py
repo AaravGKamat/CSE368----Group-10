@@ -27,18 +27,19 @@ def parse_question(input_str):
     s = input_str.strip()    
 
     # split question and choices
-    choices_sep = ",^^Choices:"
+    choices_sep = "^^Choices:"
     if choices_sep not in s:
         raise ValueError("Input string missing question or Choices part")
     question_part, rest = s.split(choices_sep, 1)
     question_text = question_part.replace("Question:", "", 1).strip()
+    question_text = question_text.rstrip(',') 
 
     # split choices and answer (answer marker is '**Answer:')
     answer_sep = "**Answer:"
     if answer_sep in rest:
         choices_part, answer_part = rest.split(answer_sep, 1)
-    elif ", **Answer:" in rest:
-        choices_part, answer_part = rest.split(", **Answer:", 1)
+    elif "**Answer:" in rest:
+        choices_part, answer_part = rest.split("**Answer:", 1)
     else:
         raise ValueError("Input string missing Answer part")
 
@@ -49,7 +50,7 @@ def parse_question(input_str):
     # normalize answer: remove optional leading 'ChoiceN:' and trailing angle
     answer = re.sub(r'^Choice\d*:\s*', '', answer_part).strip()
     answer = answer.rstrip('>')  # remove trailing > if present
-
+    answer = answer.rstrip(',') 
     return {
         'question': question_text,
         'choices': choices,
