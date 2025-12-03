@@ -11,6 +11,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+from app_files.quizparse import parse_quiz
+from google.cloud import aiplatform
+import requests
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
+
 
 # command to run database + server at the same time
 # docker compose up --build --force-recreate
@@ -49,9 +55,6 @@ def create_resource():
     return render_template('quiz_gen.html')
 
 
-# change later
-
-
 @app.route('/feedback/<id>', methods=['POST', 'GET'])
 def feed_get(id):
     feed_id = id
@@ -72,30 +75,67 @@ def upload_file():
     print(name)
     print(notes_text)
 
-    client = genai.Client(vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
-    prompt = ""
+    prompt =""
     flash_index = 0
     separator = " .Please separate the quiz from the flashcards with this: $$Separator"
     if (quiz_upload == "on"):
-        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+        prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice2:put choice 2 here &&Choice3:put choice 3 here &&Choice4:put choice 4 here &&Choice5:put choice 5 here, **Answer:put answer here. "
     if (flashcard_upload == "on"):
         prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
     if (quiz_upload == "on" and flashcard_upload == "on"):
-        prompt += separator
-        flash_index = 1
-
-    response = ""
-    response = client.models.generate_content(
-        model="gemini-2.5-flash", contents=notes_text+prompt
+        prompt+=separator
+        flash_index =1
+    # Get credentials from env
+    project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+    region = os.getenv("VERTEX_AI_REGION")
+    endpoint_id = os.getenv("VERTEX_AI_ENDPOINT_ID")
+    credentials_json_str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    
+    credentials_info = json.loads(credentials_json_str)
+    credentials = service_account.Credentials.from_service_account_info(
+    credentials_info,
+    scopes=["https://www.googleapis.com/auth/cloud-platform"] 
     )
-    print(prompt)
-    print(response.text)
-    raw_response = ""
-    if (response.text != None):
-        raw_response = response.text.replace("\n", "")
-    raw_response = raw_response.split("$$Separator")
-    print(raw_response)
+  
+    endpoint_url = f"https://{region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{region}/endpoints/{endpoint_id}:generateContent"
 
+    payload = {
+    "contents": [
+    {
+    "role": "user",
+    "parts": [{"text": notes_text+prompt}]
+    }
+    ],
+    "generation_config": {
+    "temperature": 0.4,
+    "max_output_tokens": 20000,  #Max response length
+    }
+    }
+    # Get access token
+    credentials.refresh(Request())
+    headers = {
+    "Authorization": f"Bearer {credentials.token}",
+    "Content-Type": "application/json"
+    }
+
+    response = requests.post(endpoint_url, json=payload, headers=headers)
+    print(response)
+    if response.status_code == 200:
+        response_data = response.json()
+        print(response_data)
+    # Parse Gemini response format
+    if "candidates" in response_data and response_data["candidates"]:
+        candidate = response_data["candidates"][0]
+    if "content" in candidate and "parts" in candidate["content"]:
+        parts = candidate["content"]["parts"]
+    if parts and "text" in parts[0]:
+        response = parts[0]["text"]
+
+    print(prompt)
+    raw_response = response.replace("\n","")
+    raw_response = raw_response.split("$$Separator")
+
+    #Store response in db
     if (quiz_upload == "on"):
         quiz_collection.insert_one(
             {"quiz_name": name, "quiz_questions": raw_response[0]})
@@ -205,16 +245,12 @@ def fetch_flashcards():
 # serve specific flashcard
 @app.route('/serve_flashcard/<name>', methods=['GET'])
 def find_flashcard(name):
-    # Pretend this is returned from dbquery
-    flash_query = ""
-    raw_flash = ""
-    flash_query = flashcard_collection.find_one({"flashcard_name": name})
-    if (flash_query != None):
-        raw_flash = flash_query["cards"]
-        raw_flash = raw_flash.split("<>Question:")
-        random.shuffle(raw_flash)
-    pairs = []
-    count = 0
+    flash_query = flashcard_collection.find_one({"flashcard_name":name})
+    raw_flash=flash_query["cards"]
+    raw_flash = raw_flash.split("<>Question:")
+    random.shuffle(raw_flash)
+    pairs =[]
+    count =0
     for pair in raw_flash:
         if pair != "":
             json_pair = {}

@@ -3,3 +3,6 @@ Flask
 Flask-SQLAlchemy
 google-genai
 dotenv
+google-cloud-aiplatform
+google-auth
+vertexai
