@@ -8,14 +8,7 @@
   <title>Quiz: {{ quiz_name }}</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    .question { margin-bottom: 24px; }
-    .q-text h2, .q-text h1 { 
-        color: #071022;
-        text-shadow: 
-            0 0 2px rgba(255,255,255,1),
-            0 0 6px rgba(255,255,255,1),
-            0 0 12px rgba(255,255,255,1)
-     }
+    .question { margin-bottom: 24px; }    
     .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
     button.choice { 
         align-items: center;
@@ -70,12 +63,25 @@
   </style>
 </head>
 <body>
-  <div class="q-text"><h1>Quiz: {{ quiz_name }}</h1></div>
-
+  <div class="q-text shadowed-text"><h1>Quiz: {{ quiz_name }}</h1></div>
+  <br>
+  <div class="btn-row">
+    <button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+      <span>
+          Home
+      </span>
+    </button>
+    <button class="button1" onclick="window.location.href='{{ url_for('get_quizzes') }}'">
+      <span>
+          Back
+      </span>
+    </button>
+  </div>
+  <br>
   <div id="quiz">
     {% for q in questions %}
       <div class="question" data-q-index="{{ loop.index0 }}">
-        <div class="q-text"><h2><strong>Q{{ loop.index }}.</strong> {{ q.question }}</h2></div>
+        <div class="q-text shadowed-text"><h2><strong>Q{{ loop.index }}.</strong> {{ q.question }}</h2></div>
         <div class="choices">
           {% for choice in q.choices %}
             <button class="choice" type="button"
@@ -89,6 +95,19 @@
         </div>
       </div>
     {% endfor %}
+    <br>
+    <div class="btn-row">
+      <button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+          <span>
+              Home
+          </span>
+      </button>
+      <button class="button1" onclick="window.location.href='{{ url_for('get_quizzes') }}'">
+          <span>
+              Back
+          </span>
+      </button>
+      </div>
   </div>
 
   <script>
