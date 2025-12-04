@@ -1,11 +1,11 @@
 services:
   mongo:
-    image: mongo:6
+    image: mongo
     restart: unless-stopped
     # volumes: 
     #   - mongodata:/data/db
   server:
-    build: 
+    build:
       context: .
       dockerfile: server.Dockerfile
     environment:

@@ -139,6 +139,7 @@ def upload_file():
         #         flashcard_collection.insert_one(
         #             {"flashcard_name": file_name, "file_path": file_path})
         return redirect("/")
+
     else:
 
         # parse the pdf
@@ -154,7 +155,44 @@ def upload_file():
             include_image_base64=True
         )
 
+        # get the contents of each pdf page
+        ocr_result = ""
+        for i in range(0, len(ocr_response.pages)):
+            ocr_result += ocr_response.pages[i].markdown
+
         print(ocr_response)
+
+        client = genai.Client(
+            vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
+        prompt = ""
+        flash_index = 0
+        separator = " .Please separate the quiz from the flashcards with this: $$Separator"
+        if (quiz_upload == "on"):
+            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+        if (flashcard_upload == "on"):
+            prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
+        if (quiz_upload == "on" and flashcard_upload == "on"):
+            prompt += separator
+            flash_index = 1
+
+        response = ""
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=ocr_result+prompt
+        )
+        print(prompt)
+        print(response.text)
+        raw_response = ""
+        if (response.text != None):
+            raw_response = response.text.replace("\n", "")
+        raw_response = raw_response.split("$$Separator")
+        print(raw_response)
+
+        if (quiz_upload == "on"):
+            quiz_collection.insert_one(
+                {"quiz_name": name, "quiz_questions": raw_response[0]})
+        if (flashcard_upload == "on"):
+            flashcard_collection.insert_one(
+                {"flashcard_name": name, "cards": raw_response[flash_index]})
 
         return redirect("/")
 

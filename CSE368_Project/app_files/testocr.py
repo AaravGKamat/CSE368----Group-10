@@ -84,8 +84,10 @@ ocr_response_5 = client.ocr.process(
     include_image_base64=True
 )
 
-
-print(ocr_response_5)
+result = ""
+for i in range(0, len(ocr_response_5.pages)):
+    result += ocr_response_5.pages[i].markdown
+print(result)
 
 
 # print(ocr_response_1)
