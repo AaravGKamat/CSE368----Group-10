@@ -43,6 +43,25 @@ mime_to_extension = {
     "application/pdf": ".pdf"
 }
 
+#Credentials for api call
+project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
+region = os.getenv("VERTEX_AI_REGION")
+endpoint_id = os.getenv("VERTEX_AI_ENDPOINT_ID")
+credentials_json_str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+credentials_info = json.loads(credentials_json_str)
+credentials = service_account.Credentials.from_service_account_info(
+credentials_info,
+scopes=["https://www.googleapis.com/auth/cloud-platform"] 
+)
+
+endpoint_url = f"https://{region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{region}/endpoints/{endpoint_id}:generateContent"
+
+credentials.refresh(Request())
+headers = {
+"Authorization": f"Bearer {credentials.token}",
+"Content-Type": "application/json"
+}
 
 @app.route('/')
 def home():
@@ -85,18 +104,7 @@ def upload_file():
         prompt+=separator
         flash_index =1
     # Get credentials from env
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
-    region = os.getenv("VERTEX_AI_REGION")
-    endpoint_id = os.getenv("VERTEX_AI_ENDPOINT_ID")
-    credentials_json_str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
     
-    credentials_info = json.loads(credentials_json_str)
-    credentials = service_account.Credentials.from_service_account_info(
-    credentials_info,
-    scopes=["https://www.googleapis.com/auth/cloud-platform"] 
-    )
-  
-    endpoint_url = f"https://{region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{region}/endpoints/{endpoint_id}:generateContent"
 
     payload = {
     "contents": [
@@ -111,11 +119,7 @@ def upload_file():
     }
     }
     # Get access token
-    credentials.refresh(Request())
-    headers = {
-    "Authorization": f"Bearer {credentials.token}",
-    "Content-Type": "application/json"
-    }
+    
 
     response = requests.post(endpoint_url, json=payload, headers=headers)
     print(response)
@@ -257,8 +261,8 @@ def find_flashcard(name):
             temp = temp.split("**Answer:")
             print(temp)
             if len(temp) == 2:
-                json_pair["question"] = temp[0]
-                json_pair["answer"] = temp[1]
+                json_pair["question"] = temp[0].rstrip().rstrip(",")
+                json_pair["answer"] = temp[1].rstrip().rstrip(",")
                 json_pair["count"] = count
                 if count == 0:
                     json_pair["start"] = "show"
@@ -267,6 +271,10 @@ def find_flashcard(name):
     print(pairs)
     return render_template("flash.html", flash_list=pairs, flash_length=len(pairs))
 
+#Feedback
+@app.route('/serve_quiz/feedback/<name>', methods=['POST'])
+def feedback(name):
+    return
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
