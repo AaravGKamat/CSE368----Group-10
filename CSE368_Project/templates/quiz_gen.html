@@ -1,33 +1,97 @@
 {% extends 'base.html' %}
-{% block header %}
-Quiz and Flashcard generation
-{% endblock %}
 
 {% block content %}
-<br>
-<button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
-  <span>
-    Home
-  </span>
-</button>
-<br>
+<style>
+  .form-box {
+    background: #c6c7c8;
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(15,20,30,0.04);
+    margin-top: 12px;
+  }
+
+  .form-box .create-note { color: #333; margin-bottom: 12px; }
+</style>
+
+<div class="left-offset">
+  <h1 class="shadowed-text">Quiz and Flashcard Generation</h1>
+  <button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+    <span>
+      Home
+    </span>
+  </button>
+</div>
 
 <div class="create-container">
+  <div class="form-box">
 
-
-  <!-- Get request here to load quizzes -->
-  <form action="/file_path" method="post" enctype="multipart/form-data">
-    <div>To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<div>
-        <input type="text" name="mat_name" placeholder="Enter the name of your quiz or flashcard"></input><br>
-        <input class="notesbox" name="notestext" type="text" placeholder="Enter your notes here"></input>
-        <input type="file" name="upload" accept="image/png,image/jpeg,application/pdf"></input><br>
-        <input type="checkbox" name="quizupload">Quiz</input><input type="checkbox"
-          name="flashcardupload">Flashcards</input>
-
-        <br><button class="button3">Create</button>
-  </form>
+    <!-- Get request here to load quizzes -->
+    <form action="/file_path" method="post" enctype="multipart/form-data">
+      <div class="create-note">To create quizzes and flashcards, upload a .png, .jpg, or .pdf below and press Create<div>
+          <input type="text" name="mat_name" placeholder="Enter the name of your quiz or flashcard" style="width:75%" required></input><br>
+          <div style="margin:12px 0;">
+            <label>Input Type (switching will clear input!)</label><br>
+            <label style="margin-right:12px;">
+              <input type="radio" name="inputType" id="inputTypeText" value="text" checked>
+              Text input
+            </label><br>
+            <label>
+              <input type="radio" name="inputType" id="inputTypeFile" value="file">
+              Upload PDF
+            </label>
+          </div>
+          <div id="textInputArea">
+            <label for="notestext">Paste Notes Here:</label><br>
+            <textarea id="notestext" class="notesbox" name="notestext" rows="8" placeholder="Enter your notes here" style="width:75%; resize: vertical; overflow: auto;"></textarea>
+          </div>
+          <div id="fileInputArea" style="display:none;">
+            <label for="upload">Upload PDF File:</label><br>
+            <input id="upload" type="file" name="upload" accept=".pdf"></input><br>
+            <div style="font-size:12px; color:#444; margin-top:6px;">Only .pdf files are accepted.</div>
+          </div>
+          <br>
+          <input checked type="checkbox" name="quizupload">Quiz</input>
+          <input checked type="checkbox" name="flashcardupload">Flashcards</input>
+          <br>
+          <button class="button3">Create</button>
+    </form>
+  </div>
 
 </div>
+
+<script>
+  (function(){
+    const textRadio = document.getElementById('inputTypeText');
+    const fileRadio = document.getElementById('inputTypeFile');
+    const textArea = document.getElementById('textInputArea');
+    const fileArea = document.getElementById('fileInputArea');
+
+    function updateVisibility() {
+      const f = document.getElementById('upload');
+      const ta = document.getElementById('notestext');
+
+      if (textRadio.checked) {
+        textArea.style.display = '';
+        fileArea.style.display = 'none';
+        // ensure file input cleared
+        const f = document.getElementById('upload');
+        if (f) f.value = '';
+      } else {
+        textArea.style.display = 'none';
+        fileArea.style.display = '';
+        // clear text area so server won't receive both
+        const ta = document.getElementById('notestext');
+        if (ta) ta.value = '';
+      }
+    }
+
+    textRadio.addEventListener('change', updateVisibility);
+    fileRadio.addEventListener('change', updateVisibility);
+
+    // init
+    updateVisibility();
+  })();
+</script>
 {% endblock %}
 
 

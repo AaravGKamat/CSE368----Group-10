@@ -1,12 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="quizlist">
-    <h1 class="font-bold">My Quizzes</h1>
-    <div id="q-list"></div>
+<div class="left-offset">
+    <div class="quizlist">
+        <h1 class="font-bold shadowed-text">My Quizzes</h1>
+        <br>
+        <div class="btn-row">
+            <button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
+                <span>
+                    Home
+                </span>
+            </button>
+            <button class="button1" onclick="window.location.href='{{ url_for('view_created') }}'">
+                <span>
+                    Back
+                </span>
+            </button>
+        </div>
+        <br>
+        <div id="q-list"></div>
+    </div>
+    <br>
 </div>
-<br>
-
-
 <script src="{{ url_for('static', filename='fetchquizzes.js') }}" type="module"></script>
 {% endblock %}
