@@ -253,3 +253,22 @@ a {
     width: 15px;
     height: 15px;
 }
+
+.shadowed-text {
+    font-weight: 900;
+    color: #071022;
+    text-shadow: 
+        0 0 2px rgba(255,255,255,0.2), 
+        0 0 6px rgba(255,255,255,0.5), 
+        0 0 12px rgba(255,255,255,1);
+}
+
+.btn-row { 
+    display: flex;
+    gap: 8px;
+    align-items: center; 
+}
+
+.left-offset {
+  padding-left: 32px;
+}

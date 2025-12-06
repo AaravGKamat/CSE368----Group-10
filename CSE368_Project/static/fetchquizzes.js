@@ -17,7 +17,8 @@ async function fetch_quizzes() {
         for (let i = 0; i < len; i++) {
             let element = quiz_length[i];
 
-            result += '<a href="/serve_quiz/' + element["quiz_name"] + '">' + element["quiz_name"] + '</a><br>';
+            result += '<button class="button4" onclick="window.location.href=\'/serve_quiz/' + element["quiz_name"] + '\'">' + '<span>' + element["quiz_name"] + '</span></button><br><br>';
+        
         }
         final_list.innerHTML = result;
         return;

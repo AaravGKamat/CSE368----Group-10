@@ -6,3 +6,4 @@ dotenv
 google-cloud-aiplatform
 google-auth
 vertexai
+mistralai

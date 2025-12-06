@@ -1,7 +1,3 @@
-from google.auth.transport.requests import Request
-from google.oauth2 import service_account
-import requests
-from google.cloud import aiplatform
 from google import genai
 from bson import json_util
 from app_files.database import flashcard_collection
@@ -10,7 +6,6 @@ import random
 import json
 import uuid
 from flask import Flask, redirect, url_for, request, render_template, jsonify, send_from_directory
-from app_files.quiz_parse import parse_quiz
 import base64
 import os
 from mistralai import Mistral
@@ -44,27 +39,6 @@ mime_to_extension = {
     "application/pdf": ".pdf"
 }
 
-# Credentials for api call
-project_id = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
-region = os.getenv("VERTEX_AI_REGION")
-endpoint_id = os.getenv("VERTEX_AI_ENDPOINT_ID")
-credentials_json_str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-credentials_info = ""
-if (credentials_json_str != None):
-    credentials_info = json.loads(credentials_json_str)
-credentials = service_account.Credentials.from_service_account_info(
-    credentials_info,
-    scopes=["https://www.googleapis.com/auth/cloud-platform"]
-)
-
-endpoint_url = f"https://{region}-aiplatform.googleapis.com/v1/projects/{project_id}/locations/{region}/endpoints/{endpoint_id}:generateContent"
-
-credentials.refresh(Request())
-headers = {
-    "Authorization": f"Bearer {credentials.token}",
-    "Content-Type": "application/json"
-}
-
 
 @app.route('/')
 def home():
@@ -76,6 +50,9 @@ def create_resource():
     return render_template('quiz_gen.html')
 
 
+# change later
+
+
 @app.route('/feedback/<id>', methods=['POST', 'GET'])
 def feed_get(id):
     feed_id = id
@@ -85,67 +62,42 @@ def feed_get(id):
 # upload quizzes and flashcards
 @app.route("/file_path", methods=["POST"])
 def upload_file():
-    response_data = {}
-    candidate = {}
-    parts = []
     # get the quiz and flashcards checkmarks and actual file content
     quiz_upload = request.form.get("quizupload", None)
     flashcard_upload = request.form.get("flashcardupload", None)
+    # data of file
     file_data = request.files["upload"]
 
     notes_text = request.form["notestext"]
     name = request.form["mat_name"]
 
-    print(name)
-    print(notes_text)
-
     if (file_data.filename == ""):
 
+        client = genai.Client(
+            vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
         prompt = ""
         flash_index = 0
         separator = " .Please separate the quiz from the flashcards with this: $$Separator"
         if (quiz_upload == "on"):
-            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice2:put choice 2 here &&Choice3:put choice 3 here &&Choice4:put choice 4 here &&Choice5:put choice 5 here, **Answer:put answer here. "
+            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
         if (flashcard_upload == "on"):
             prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
         if (quiz_upload == "on" and flashcard_upload == "on"):
             prompt += separator
             flash_index = 1
-        # Get credentials from env
-
-        payload = {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [{"text": notes_text+prompt}]
-                }
-            ],
-            "generation_config": {
-                "temperature": 0.4,
-                "max_output_tokens": 20000,  # Max response length
-            }
-        }
-        # Get access token
 
         response = ""
-        response = requests.post(endpoint_url, json=payload, headers=headers)
-        print(response)
-        if response.status_code == 200:
-            response_data = response.json()
-            print(response_data)
-        # Parse Gemini response format
-        if "candidates" in response_data and response_data["candidates"]:
-            candidate = response_data["candidates"][0]
-        if "content" in candidate and "parts" in candidate["content"]:
-            parts = candidate["content"]["parts"]
-        if parts and "text" in parts[0]:
-            response = parts[0]["text"]
-
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", contents=notes_text+prompt
+        )
         print(prompt)
-        raw_response = response.replace("\n", "")
+        print(response.text)
+        raw_response = ""
+        if (response.text != None):
+            raw_response = response.text.replace("\n", "")
         raw_response = raw_response.split("$$Separator")
+        print(raw_response)
 
-        # Store response in db
         if (quiz_upload == "on"):
             quiz_collection.insert_one(
                 {"quiz_name": name, "quiz_questions": raw_response[0]})
@@ -189,6 +141,7 @@ def upload_file():
         return redirect("/")
 
     else:
+
         # parse the pdf
         api_key = os.environ["MISTRAL_API_KEY"]
         client = Mistral(api_key=api_key)
@@ -272,31 +225,8 @@ def find_quiz(filename):
     path = "/root/app_files/quizzes/"
     return send_from_directory(path, filename)
 
-# fully serves specific quiz with parsing and rendering
-
-
-@app.route('/serve_quiz/<name>', methods=['GET'])
-def serve_quiz(name):
-    # Retrieve the raw quiz string from the database
-    quiz_doc = quiz_collection.find_one({"quiz_name": name})
-
-    if not quiz_doc:
-        return "Quiz not found", 404
-
-    raw_quiz = quiz_doc["quiz_questions"]
-
-    # Parse using your existing code
-    parsed = parse_quiz(raw_quiz)
-
-    # Render in template
-    return render_template("quiz_render.html",
-                           quiz_name=name,
-                           questions=parsed,
-                           q_count=len(parsed))
 
 # view all uploaded flashcards
-
-
 @app.route('/uploaded_flashcards/', methods=['GET'])
 def get_flashcards():
     return render_template("uploaded_flashcards.html")
@@ -315,12 +245,14 @@ def fetch_flashcards():
 # serve specific flashcard
 @app.route('/serve_flashcard/<name>', methods=['GET'])
 def find_flashcard(name):
-    flash_query = flashcard_collection.find_one({"flashcard_name": name})
+    # Pretend this is returned from dbquery
+    flash_query = ""
     raw_flash = ""
+    flash_query = flashcard_collection.find_one({"flashcard_name": name})
     if (flash_query != None):
         raw_flash = flash_query["cards"]
-    raw_flash = raw_flash.split("<>Question:")
-    random.shuffle(raw_flash)
+        raw_flash = raw_flash.split("<>Question:")
+        random.shuffle(raw_flash)
     pairs = []
     count = 0
     for pair in raw_flash:
@@ -330,8 +262,8 @@ def find_flashcard(name):
             temp = temp.split("**Answer:")
             print(temp)
             if len(temp) == 2:
-                json_pair["question"] = temp[0].rstrip().rstrip(",")
-                json_pair["answer"] = temp[1].rstrip().rstrip(",")
+                json_pair["question"] = temp[0]
+                json_pair["answer"] = temp[1]
                 json_pair["count"] = count
                 if count == 0:
                     json_pair["start"] = "show"
@@ -340,35 +272,6 @@ def find_flashcard(name):
     print(pairs)
     return render_template("flash.html", flash_list=pairs, flash_length=len(pairs))
 
-# Feedback
-
-
-@app.route('/serve_quiz/feedback/<name>', methods=['POST'])
-def feedback(name):
-    selected = json.loads(request.form.get("selected",None))
-    print(selected)
-    quiz_doc= quiz_collection.find_one({"quiz_name": name})
-    if not quiz_doc:
-        return "Quiz not found", 404
-
-    # Parse using your existing code
-    questions = parse_quiz(quiz_doc["quiz_questions"])
-    print(questions)
-    payload = {
-    "contents": [
-    {
-    "role": "user",
-    "parts": [{"text": ""}]
-    }
-    ],
-    "generation_config": {
-    "temperature": 0.4,
-    "max_output_tokens": 20000,  #Max response length
-    }
-    }
-  
-    response = requests.post(endpoint_url, json=payload, headers=headers)
-    return
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
