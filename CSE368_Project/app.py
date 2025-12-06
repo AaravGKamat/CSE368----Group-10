@@ -274,6 +274,32 @@ def find_flashcard(name):
 #Feedback
 @app.route('/serve_quiz/feedback/<name>', methods=['POST'])
 def feedback(name):
+    selected = json.loads(request.form.get("selected",None))
+    print(selected)
+    quiz_doc= quiz_collection.find_one({"quiz_name": name})
+    if not quiz_doc:
+        return "Quiz not found", 404
+
+    # Parse using your existing code
+    questions = parse_quiz(quiz_doc["quiz_questions"])
+    print(questions)
+    payload = {
+    "contents": [
+    {
+    "role": "user",
+    "parts": [{"text": ""}]
+    }
+    ],
+    "generation_config": {
+    "temperature": 0.4,
+    "max_output_tokens": 20000,  #Max response length
+    }
+    }
+  
+    
+    
+
+    response = requests.post(endpoint_url, json=payload, headers=headers)
     return
 
 if __name__ == '__main__':

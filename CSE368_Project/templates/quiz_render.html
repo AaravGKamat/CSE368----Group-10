@@ -78,7 +78,7 @@
         <div class="q-text"><h2><strong>Q{{ loop.index }}.</strong> {{ q.question }}</h2></div>
         <div class="choices">
           {% for choice in q.choices %}
-            <button class="choice" type="button"
+            <button class="choice"  type="button"
                     data-choice="{{ choice }}"
                     data-answer="{{ q.answer }}">
                     <span>
@@ -89,19 +89,25 @@
         </div>
       </div>
     {% endfor %}
+    <button onclick="submitQuiz('{{quiz_name}}')">Submit for feedback</button>
   </div>
-
-  <script>
+  
+  <script type="text/javascript">
+    answers = new Array(10);
+    currentQ = 0;
     document.querySelectorAll('.question').forEach(function(qElem) {
       const buttons = Array.from(qElem.querySelectorAll('button.choice'));
       buttons.forEach(function(btn) {
+        btn.setAttribute("id",currentQ)
         btn.addEventListener('click', function() {
           // already answered
           if (buttons.some(b => b.disabled)) return;
 
           const selected = btn.getAttribute('data-choice').trim();
           const answer = btn.getAttribute('data-answer').trim();
-
+          //add selected to form
+          answers[btn.getAttribute("id")] = selected
+          
           if (selected === answer) {
             btn.classList.add('correct');
           } else {
@@ -115,7 +121,17 @@
           buttons.forEach(b => b.disabled = true);
         });
       });
+      currentQ +=1;
     });
+    function submitQuiz(name){
+      quiz_form = new FormData();
+      quiz_form.append("selected",JSON.stringify(answers))
+      fetch('/serve_quiz/feedback/'+name, {
+      method: "POST",
+      // Set the FormData instance as the request body
+      body: quiz_form,
+    });
+    }
   </script>
 </body>
 </html>
