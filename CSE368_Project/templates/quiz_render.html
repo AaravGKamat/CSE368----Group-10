@@ -95,7 +95,11 @@
         </div>
       </div>
     {% endfor %}
-    <button onclick="submitQuiz('{{quiz_name}}')">Submit for feedback</button>
+    <div>
+    <button class="submitButton" onclick="submitQuiz('{{quiz_name}}')"><span>Submit for feedback</span></button>
+    </div>
+    <div id = "scoreContainer"></div>
+    <div id = "feedbackContainer"></div>
     <br>
     <div class="btn-row">
       <button class="button1" onclick="window.location.href='{{ url_for('home') }}'">
@@ -142,14 +146,26 @@
       });
       currentQ +=1;
     });
-    function submitQuiz(name){
+    async function submitQuiz(name){
       quiz_form = new FormData();
       quiz_form.append("selected",JSON.stringify(answers))
-      fetch('/serve_quiz/feedback/'+name, {
+      const response =  await fetch('/serve_quiz/feedback/'+name, {
       method: "POST",
-      // Set the FormData instance as the request body
       body: quiz_form,
-    });
+      });
+      if (!response.ok) {
+          return;
+      }
+
+      const results = await response.json();
+      const feedbackContainer = await document.getElementById("feedbackContainer");
+      const scoreContainer = await document.getElementById("scoreContainer");
+      feedbackContainer.innerHTML = results["feedback"];
+      scoreContainer.innerHTML = "Score: "+ results["score"] +"/10";
+
+      scoreContainer.style.display = "flex"
+      feedbackContainer.style.display="flex"
+      console.log(results)
     }
   </script>
 </body>

@@ -75,13 +75,6 @@ def home():
 def create_resource():
     return render_template('quiz_gen.html')
 
-
-@app.route('/feedback/<id>', methods=['POST', 'GET'])
-def feed_get(id):
-    feed_id = id
-    return render_template('ai_feedback.html', ID=feed_id)
-
-
 # upload quizzes and flashcards
 @app.route("/file_path", methods=["POST"])
 def upload_file():
@@ -148,7 +141,7 @@ def upload_file():
         # Store response in db
         if (quiz_upload == "on"):
             quiz_collection.insert_one(
-                {"quiz_name": name, "quiz_questions": raw_response[0]})
+                {"quiz_name": name, "quiz_questions": raw_response[0],"quiz_text":notes_text})
         if (flashcard_upload == "on"):
             flashcard_collection.insert_one(
                 {"flashcard_name": name, "cards": raw_response[flash_index]})
@@ -236,7 +229,7 @@ def upload_file():
 
         if (quiz_upload == "on"):
             quiz_collection.insert_one(
-                {"quiz_name": name, "quiz_questions": raw_response[0]})
+                {"quiz_name": name, "quiz_questions": raw_response[0],"quiz_text":ocr_result})
         if (flashcard_upload == "on"):
             flashcard_collection.insert_one(
                 {"flashcard_name": name, "cards": raw_response[flash_index]})
@@ -351,14 +344,43 @@ def feedback(name):
     if not quiz_doc:
         return "Quiz not found", 404
 
-    # Parse using your existing code
     questions = parse_quiz(quiz_doc["quiz_questions"])
     print(questions)
+    print(quiz_doc["quiz_text"])
+
+
+    prompt = "Please provide feedback on the results of a 10 question quiz. I will provide the original text, the questions, the answer choices for each question, the correct choice to each question, and the choice that the quiz taker chose." \
+    "Please comment on areas that the quiz taker could improve on as well areas that they are doing well on. If the answer choice is 'No answer', the quiz taker did not answer that question"
+
+    prompt += " Original text:"+quiz_doc["quiz_text"]
+    prompt+= "Questions, answer choices, correct choice, and choice that quiz taker selected:"
+
+    score = 0
+    nullQuiz =0
+    for i in range(10):
+        prompt += " Question " +str(i+1)+"- " + questions[i]["question"]
+        prompt += " Choices:"
+        for j in range(5):
+            prompt += " Choice "+str(j+1)+": " + questions[i]["choices"][j] +" "
+        prompt += " Correct choice: "+ questions[i]["answer"]
+        if selected[i] == None:
+            prompt+= " Quiz taker selected choice: No answer "
+            nullQuiz +=1
+        else:
+            prompt+= " Quiz taker selected choice: "+selected[i]
+            if questions[i]["answer"].rstrip() == selected[i].rstrip():
+                score += 1
+
+    if nullQuiz == 10:
+        return jsonify({"score":"","feedback":""})
+    print(prompt)
+    print(score)
+        
     payload = {
     "contents": [
     {
     "role": "user",
-    "parts": [{"text": ""}]
+    "parts": [{"text": prompt}]
     }
     ],
     "generation_config": {
@@ -368,7 +390,22 @@ def feedback(name):
     }
   
     response = requests.post(endpoint_url, json=payload, headers=headers)
-    return
+    print(response)
+    if response.status_code == 200:
+        response_data = response.json()
+        print(response_data)
+    # Parse Gemini response format
+    if "candidates" in response_data and response_data["candidates"]:
+        candidate = response_data["candidates"][0]
+    if "content" in candidate and "parts" in candidate["content"]:
+        parts = candidate["content"]["parts"]
+    if parts and "text" in parts[0]:
+        response = parts[0]["text"]
+
+    raw_response = response.replace("\n", "")
+
+    return jsonify({"score":score,"feedback":raw_response})
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
