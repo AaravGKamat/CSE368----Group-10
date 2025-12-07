@@ -286,16 +286,18 @@ def find_flashcard(name):
     if (flash_query != None):
         raw_flash = flash_query["cards"]
     raw_flash = raw_flash.split("<>Question:")
+    print(flash_query["cards"])
+    print(raw_flash)
     random.shuffle(raw_flash)
     pairs = []
     count = 0
     for pair in raw_flash:
-        if pair != "":
+        if pair.strip()!="":
             json_pair = {}
             temp = pair.replace("\n", "")
             temp = temp.split("**Answer:")
             print(temp)
-            if len(temp) == 2:
+            if len(temp) >= 2:
                 json_pair["question"] = temp[0].rstrip().rstrip(",")
                 json_pair["answer"] = temp[1].rstrip().rstrip(",")
                 json_pair["count"] = count
