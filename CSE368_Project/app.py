@@ -13,9 +13,14 @@ from flask import Flask, redirect, url_for, request, render_template, jsonify, s
 from app_files.quiz_parse import parse_quiz
 import base64
 import os
+
+import datetime
+
+
 from mistralai import Mistral
 from dotenv import load_dotenv
 load_dotenv()
+
 
 
 # command to run database + server at the same time
@@ -87,7 +92,8 @@ def upload_file():
     file_data = request.files["upload"]
 
     notes_text = request.form["notestext"]
-    name = request.form["mat_name"]
+    now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    name = request.form["mat_name"]+"-"+now
 
     print(name)
     print(notes_text)
@@ -146,39 +152,6 @@ def upload_file():
             flashcard_collection.insert_one(
                 {"flashcard_name": name, "cards": raw_response[flash_index]})
 
-        # get the file extension
-        # content_type = mime_to_extension[str(file_data.content_type)]
-
-        # if the quiz checkmark is enabled, upload to the quizzes folder
-        # if the flashcards checkmark is enabled, upload to the flashcards folder
-
-        # if file_data !=None:
-        #     if (quiz_upload == "on"):
-        #         # random id for the file
-        #         random_id = str(uuid.uuid4())
-        #         file_name = f"quiz_{random_id}{content_type}"
-        #         file_path = (os.path.join(
-        #             "/root/app_files/quizzes/", file_name))
-
-        #         file_data.save(file_path)
-
-        #         # upload filename to the database for quizzes
-        #         quiz_collection.insert_one(
-        #             {"quiz_name": file_name, "file_path": file_path})
-
-        #     if (flashcard_upload == "on"):
-        #         # random id for the file
-        #         random_id = str(uuid.uuid4())
-        #         file_name = f"flashcard_{random_id}{content_type}"
-        #         file_path = (os.path.join(
-        #             "/root/app_files/flashcards/", file_name))
-
-        #         file_data.seek(0)
-        #         file_data.save(file_path)
-
-        #         # upload filename to the database for flashcards
-        #         flashcard_collection.insert_one(
-        #             {"flashcard_name": file_name, "file_path": file_path})
         return redirect("/")
 
     else:
@@ -349,8 +322,8 @@ def feedback(name):
     print(quiz_doc["quiz_text"])
 
 
-    prompt = "Please provide feedback on the results of a 10 question quiz. I will provide the original text, the questions, the answer choices for each question, the correct choice to each question, and the choice that the quiz taker chose." \
-    "Please comment on areas that the quiz taker could improve on as well areas that they are doing well on. If the answer choice is 'No answer', the quiz taker did not answer that question"
+    prompt = "Please provide feedback on the results of a 10 question quiz. I will provide the original text, the questions, the answer choices for each question, the correct choice to each question, and the choice that the quiz taker chose.Please comment on areas that the quiz taker could improve on as well" \
+    " areas that they are doing well on. If the answer choice is 'No answer', the quiz taker did not answer that question. Please provide it in this format: <>Strength: Give areas that the quiz taker did well on <>Weakness: Give areas the quiz taker could work on <>Rec: Give ways the quiz taker could improve their understanding. "
 
     prompt += " Original text:"+quiz_doc["quiz_text"]
     prompt+= "Questions, answer choices, correct choice, and choice that quiz taker selected:"
@@ -402,9 +375,17 @@ def feedback(name):
     if parts and "text" in parts[0]:
         response = parts[0]["text"]
 
+    feedback = {}
     raw_response = response.replace("\n", "")
+    raw_response = raw_response.split("<>Strength:")
+    raw_response = raw_response[1].split("<>Weakness:")
+    feedback["strength"] = raw_response[0].strip()
+    raw_response = raw_response[1].split("<>Rec:")
+    feedback["weak"] = raw_response[0].strip()
+    feedback["rec"] = raw_response[1].strip()
 
-    return jsonify({"score":score,"feedback":raw_response})
+    print(feedback)
+    return jsonify({"score":score,"rec":feedback["rec"],"strength":feedback["strength"],"weak":feedback["weak"]})
 
 
 if __name__ == '__main__':

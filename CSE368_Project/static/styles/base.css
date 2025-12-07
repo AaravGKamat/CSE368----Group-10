@@ -333,5 +333,8 @@ a {
     border-radius: 6px;
     font-size:22px;
     color:white;
-    margin-top: 2.1em
+    margin-top: 2.1em;
+    line-height:1.5;
+    border-style: solid;
+    border-color: #a3ff00;
 }
