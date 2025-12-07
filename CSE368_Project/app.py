@@ -13,9 +13,14 @@ from flask import Flask, redirect, url_for, request, render_template, jsonify, s
 from app_files.quiz_parse import parse_quiz
 import base64
 import os
+
+import datetime
+
+
 from mistralai import Mistral
 from dotenv import load_dotenv
 load_dotenv()
+
 
 
 # command to run database + server at the same time
@@ -75,13 +80,6 @@ def home():
 def create_resource():
     return render_template('quiz_gen.html')
 
-
-@app.route('/feedback/<id>', methods=['POST', 'GET'])
-def feed_get(id):
-    feed_id = id
-    return render_template('ai_feedback.html', ID=feed_id)
-
-
 # upload quizzes and flashcards
 @app.route("/file_path", methods=["POST"])
 def upload_file():
@@ -94,7 +92,8 @@ def upload_file():
     file_data = request.files["upload"]
 
     notes_text = request.form["notestext"]
-    name = request.form["mat_name"]
+    now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    name = request.form["mat_name"]+"-"+now
 
     print(name)
     print(notes_text)
@@ -148,44 +147,11 @@ def upload_file():
         # Store response in db
         if (quiz_upload == "on"):
             quiz_collection.insert_one(
-                {"quiz_name": name, "quiz_questions": raw_response[0]})
+                {"quiz_name": name, "quiz_questions": raw_response[0],"quiz_text":notes_text})
         if (flashcard_upload == "on"):
             flashcard_collection.insert_one(
                 {"flashcard_name": name, "cards": raw_response[flash_index]})
 
-        # get the file extension
-        # content_type = mime_to_extension[str(file_data.content_type)]
-
-        # if the quiz checkmark is enabled, upload to the quizzes folder
-        # if the flashcards checkmark is enabled, upload to the flashcards folder
-
-        # if file_data !=None:
-        #     if (quiz_upload == "on"):
-        #         # random id for the file
-        #         random_id = str(uuid.uuid4())
-        #         file_name = f"quiz_{random_id}{content_type}"
-        #         file_path = (os.path.join(
-        #             "/root/app_files/quizzes/", file_name))
-
-        #         file_data.save(file_path)
-
-        #         # upload filename to the database for quizzes
-        #         quiz_collection.insert_one(
-        #             {"quiz_name": file_name, "file_path": file_path})
-
-        #     if (flashcard_upload == "on"):
-        #         # random id for the file
-        #         random_id = str(uuid.uuid4())
-        #         file_name = f"flashcard_{random_id}{content_type}"
-        #         file_path = (os.path.join(
-        #             "/root/app_files/flashcards/", file_name))
-
-        #         file_data.seek(0)
-        #         file_data.save(file_path)
-
-        #         # upload filename to the database for flashcards
-        #         flashcard_collection.insert_one(
-        #             {"flashcard_name": file_name, "file_path": file_path})
         return redirect("/")
 
     else:
@@ -236,7 +202,7 @@ def upload_file():
 
         if (quiz_upload == "on"):
             quiz_collection.insert_one(
-                {"quiz_name": name, "quiz_questions": raw_response[0]})
+                {"quiz_name": name, "quiz_questions": raw_response[0],"quiz_text":ocr_result})
         if (flashcard_upload == "on"):
             flashcard_collection.insert_one(
                 {"flashcard_name": name, "cards": raw_response[flash_index]})
@@ -320,16 +286,18 @@ def find_flashcard(name):
     if (flash_query != None):
         raw_flash = flash_query["cards"]
     raw_flash = raw_flash.split("<>Question:")
+    print(flash_query["cards"])
+    print(raw_flash)
     random.shuffle(raw_flash)
     pairs = []
     count = 0
     for pair in raw_flash:
-        if pair != "":
+        if pair.strip()!="":
             json_pair = {}
             temp = pair.replace("\n", "")
             temp = temp.split("**Answer:")
             print(temp)
-            if len(temp) == 2:
+            if len(temp) >= 2:
                 json_pair["question"] = temp[0].rstrip().rstrip(",")
                 json_pair["answer"] = temp[1].rstrip().rstrip(",")
                 json_pair["count"] = count
@@ -345,7 +313,81 @@ def find_flashcard(name):
 
 @app.route('/serve_quiz/feedback/<name>', methods=['POST'])
 def feedback(name):
-    return ("/")
+    selected = json.loads(request.form.get("selected",None))
+    print(selected)
+    quiz_doc= quiz_collection.find_one({"quiz_name": name})
+    if not quiz_doc:
+        return "Quiz not found", 404
+
+    questions = parse_quiz(quiz_doc["quiz_questions"])
+    print(questions)
+    print(quiz_doc["quiz_text"])
+
+
+    prompt = "Please provide feedback on the results of a 10 question quiz. I will provide the original text, the questions, the answer choices for each question, the correct choice to each question, and the choice that the quiz taker chose.Please comment on areas that the quiz taker could improve on as well" \
+    " areas that they are doing well on. If the answer choice is 'No answer', the quiz taker did not answer that question. Please provide it in this format: <>Strength: Give areas that the quiz taker did well on <>Weakness: Give areas the quiz taker could work on <>Rec: Give ways the quiz taker could improve their understanding. "
+
+    prompt += " Original text:"+quiz_doc["quiz_text"]
+    prompt+= "Questions, answer choices, correct choice, and choice that quiz taker selected:"
+
+    score = 0
+    nullQuiz =0
+    for i in range(10):
+        prompt += " Question " +str(i+1)+"- " + questions[i]["question"]
+        prompt += " Choices:"
+        for j in range(5):
+            prompt += " Choice "+str(j+1)+": " + questions[i]["choices"][j] +" "
+        prompt += " Correct choice: "+ questions[i]["answer"]
+        if selected[i] == None:
+            prompt+= " Quiz taker selected choice: No answer "
+            nullQuiz +=1
+        else:
+            prompt+= " Quiz taker selected choice: "+selected[i]
+            if questions[i]["answer"].rstrip() == selected[i].rstrip():
+                score += 1
+
+    if nullQuiz == 10:
+        return jsonify({"score":"","feedback":""})
+    print(prompt)
+    print(score)
+        
+    payload = {
+    "contents": [
+    {
+    "role": "user",
+    "parts": [{"text": prompt}]
+    }
+    ],
+    "generation_config": {
+    "temperature": 0.4,
+    "max_output_tokens": 20000,  #Max response length
+    }
+    }
+  
+    response = requests.post(endpoint_url, json=payload, headers=headers)
+    print(response)
+    if response.status_code == 200:
+        response_data = response.json()
+        print(response_data)
+    # Parse Gemini response format
+    if "candidates" in response_data and response_data["candidates"]:
+        candidate = response_data["candidates"][0]
+    if "content" in candidate and "parts" in candidate["content"]:
+        parts = candidate["content"]["parts"]
+    if parts and "text" in parts[0]:
+        response = parts[0]["text"]
+
+    feedback = {}
+    raw_response = response.replace("\n", "")
+    raw_response = raw_response.split("<>Strength:")
+    raw_response = raw_response[1].split("<>Weakness:")
+    feedback["strength"] = raw_response[0].strip()
+    raw_response = raw_response[1].split("<>Rec:")
+    feedback["weak"] = raw_response[0].strip()
+    feedback["rec"] = raw_response[1].strip()
+
+    print(feedback)
+    return jsonify({"score":score,"rec":feedback["rec"],"strength":feedback["strength"],"weak":feedback["weak"]})
 
 
 if __name__ == '__main__':

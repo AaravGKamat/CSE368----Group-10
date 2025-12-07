@@ -45,12 +45,13 @@ def parse_question(input_str):
 
     # parse choices using regex split on &&ChoiceN:
     raw_choices = re.split(r'&&Choice\d*:', choices_part)
-    choices = [c.strip() for c in raw_choices if c.strip()]
+    choices = [(c.strip()).strip(",") for c in raw_choices if c.strip()]
 
     # normalize answer: remove optional leading 'ChoiceN:' and trailing angle
     answer = re.sub(r'^Choice\d*:\s*', '', answer_part).strip()
     answer = answer.rstrip('>')  # remove trailing > if present
-    answer = answer.rstrip(',') 
+    answer = answer.strip()
+    answer = answer.strip(',') 
     return {
         'question': question_text,
         'choices': choices,
