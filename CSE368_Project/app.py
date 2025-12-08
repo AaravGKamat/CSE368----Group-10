@@ -102,7 +102,7 @@ def upload_file():
 
         prompt = ""
         flash_index = 0
-        separator = " .Please separate the quiz from the flashcards with this: $$Separator"
+        separator = " .Please generate the quiz first, then the flashcards after that. Separate the quiz from the flashcards with this: $$Separator"
         if (quiz_upload == "on"):
             prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice2:put choice 2 here &&Choice3:put choice 3 here &&Choice4:put choice 4 here &&Choice5:put choice 5 here, **Answer:put answer here. "
         if (flashcard_upload == "on"):
@@ -175,11 +175,9 @@ def upload_file():
 
         print(ocr_response)
 
-        client = genai.Client(
-            vertexai=False, api_key=os.environ["GEMINI_API_KEY"])
         prompt = ""
         flash_index = 0
-        separator = " .Please separate the quiz from the flashcards with this: $$Separator"
+        separator = " .Please generate the quiz first, then the flashcards after that. Separate the quiz from the flashcards with this: $$Separator"
         if (quiz_upload == "on"):
             prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
         if (flashcard_upload == "on"):
@@ -188,15 +186,38 @@ def upload_file():
             prompt += separator
             flash_index = 1
 
+        payload = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": ocr_result+prompt}]
+                }
+            ],
+            "generation_config": {
+                "temperature": 0.4,
+                "max_output_tokens": 20000,  # Max response length
+            }
+        }
+        # Get access token
+
         response = ""
-        response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=ocr_result+prompt
-        )
+        response = requests.post(endpoint_url, json=payload, headers=headers)
+        print(response)
+        if response.status_code == 200:
+            response_data = response.json()
+            print(response_data)
+        # Parse Gemini response format
+        if "candidates" in response_data and response_data["candidates"]:
+            candidate = response_data["candidates"][0]
+        if "content" in candidate and "parts" in candidate["content"]:
+            parts = candidate["content"]["parts"]
+        if parts and "text" in parts[0]:
+            response = parts[0]["text"]
+
         print(prompt)
-        print(response.text)
+        print(response)
         raw_response = ""
-        if (response.text != None):
-            raw_response = response.text.replace("\n", "")
+        raw_response = response.replace("\n", "")
         raw_response = raw_response.split("$$Separator")
         print(raw_response)
 
