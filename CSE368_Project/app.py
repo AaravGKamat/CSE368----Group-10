@@ -17,7 +17,7 @@ import os
 import datetime
 
 
-from mistralai import Mistral
+from mistralai.client import Mistral
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -132,6 +132,8 @@ def upload_file():
         if response.status_code == 200:
             response_data = response.json()
             print(response_data)
+        else:
+            print(response.json())
         # Parse Gemini response format
         if "candidates" in response_data and response_data["candidates"]:
             candidate = response_data["candidates"][0]
@@ -179,7 +181,7 @@ def upload_file():
         flash_index = 0
         separator = " .Please generate the quiz first, then the flashcards after that. Separate the quiz from the flashcards with this: $$Separator"
         if (quiz_upload == "on"):
-            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice1:put choice 2 here &&Choice1:put choice 3 here &&Choice1:put choice 4 here &&Choice1:put choice 5 here, **Answer:put answer here. "
+            prompt += "Please generate a 10 question multiple choice quiz based off of this text along with answers. Each question should have five possible choices and one correct answer. The questions should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give the quiz in this format: <>Question: put question here ,^^Choices: &&Choice1:put choice 1 here &&Choice2:put choice 2 here &&Choice3:put choice 3 here &&Choice4:put choice 4 here &&Choice5:put choice 5 here, **Answer:put answer here. "
         if (flashcard_upload == "on"):
             prompt += "Please generate a set of 10 flashcards based on this text. Each flashcard should range in difficulty from asking about details in the text to questions that require deep comprehension and understanding of the connections between topics. Give flashcards in this format: <>Question: put question here, **Answer:put answer here. "
         if (quiz_upload == "on" and flashcard_upload == "on"):
